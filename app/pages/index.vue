@@ -1,53 +1,35 @@
-﻿<template>
-  <div class="app-shell">
-    <h1 class="h-title center">🎴 德州扑克</h1>
-    <p class="center small">先填写昵称，然后创建房间或加入一个已有房间。</p>
+<template>
+  <div class="app-shell index-shell">
+    <div class="index-card">
+      <h1 class="h-title center">🎴 德州扑克</h1>
+      <p class="center small">填写昵称后创建房间，或加入已有房间。</p>
 
-    <div class="row">
-      <input
-        v-model="nickname"
-        placeholder="昵称（1-12 个字符）"
-        maxlength="12"
-        @input="onNicknameInput"
-      />
+      <div class="index-grid">
+        <section class="index-section">
+          <h2 class="section-title">创建房间</h2>
+          <div class="col">
+            <input v-model="nickname" placeholder="昵称（1-12 字符）" maxlength="12" @input="onNicknameInput" />
+            <div class="row">
+              <input v-model="password" placeholder="创建密码" maxlength="20" @keyup.enter="onCreate" />
+              <button :disabled="loading" @click="onCreate">{{ loading ? '处理中…' : '创建房间' }}</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="index-section">
+          <h2 class="section-title">加入房间</h2>
+          <p v-if="!rooms.length" class="small center" style="opacity:.7;">暂无可加入的房间。</p>
+          <div v-else class="room-grid">
+            <button v-for="r in rooms" :key="r.id" class="ghost room-card" :disabled="loading" @click="onJoin(r.id)">
+              <div class="room-host">{{ r.hostName }}</div>
+              <div class="small">{{ r.playerCount }}/{{ r.maxPlayers }} 人</div>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <p v-if="errorText" class="center" style="color:#ff8a80;">{{ errorText }}</p>
     </div>
-
-    <section class="section">
-      <h2 class="section-title">创建房间</h2>
-      <div class="row">
-        <input
-          v-model="password"
-          placeholder="创建密码"
-          maxlength="20"
-          @keyup.enter="onCreate"
-        />
-        <button :disabled="loading" @click="onCreate">
-          {{ loading ? '处理中…' : '创建房间' }}
-        </button>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2 class="section-title">加入房间</h2>
-      <p v-if="!rooms.length" class="small center" style="opacity:.7;">
-        当前没有可加入的房间。
-      </p>
-      <div v-else style="display:flex;flex-direction:column;gap:8px;">
-        <button
-          v-for="r in rooms"
-          :key="r.id"
-          class="ghost room-row"
-          :disabled="loading"
-          @click="onJoin(r.id)"
-        >
-          <span>{{ r.hostName }} 创建的房间</span>
-          <span class="small">{{ r.playerCount }}/{{ r.maxPlayers }} 人</span>
-        </button>
-      </div>
-    </section>
-
-    <p v-if="errorText" class="center" style="color:#ff8a80;">{{ errorText }}</p>
-    <p class="small center" style="margin-top:24px;">提示：请使用手机浏览器访问本页面。</p>
   </div>
 </template>
 
@@ -140,13 +122,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.section { margin-top: 20px; }
+.index-shell { align-items: center; justify-content: center; }
+.index-card { width: 100%; max-width: 780px; display: flex; flex-direction: column; gap: 14px; }
+.index-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
 .section-title { font-size: 15px; margin: 0 0 8px; opacity: .85; }
-.room-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  text-align: left;
-}
+.room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.room-card { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.room-host { font-weight: 700; }
+@media (max-width: 600px) { .index-grid { grid-template-columns: 1fr; } }
 </style>

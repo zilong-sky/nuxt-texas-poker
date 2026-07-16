@@ -1,33 +1,37 @@
 <template>
-  <div class="app-shell">
+  <div class="app-shell room-shell">
     <div v-if="!room" class="center">加载中…</div>
     <template v-else>
-      <h1 class="h-title">房间 <span class="small">({{ room.players.length }}/6)</span></h1>
-      <p class="small">密码即入口，开始后禁止新人加入；断线支持重连。</p>
+      <div class="room-head">
+        <h1 class="h-title">房间 <span class="small">({{ room.players.length }}/6)</span></h1>
+        <p class="small">密码即可入口，开始后禁止新人加入；断线请重连。</p>
+      </div>
 
-      <div class="pot-bar">在线：{{ humanCount }} 真人 / {{ botCount }} 机器人</div>
+      <div class="room-stats"><span class="chip lg">在线 {{ humanCount }} 真人 / {{ botCount }} 机器人</span></div>
 
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div v-for="p in room.players" :key="p.id" class="player-row">
-          <div>
-            <strong>{{ p.name }}</strong>
-            <span v-if="p.id === room.hostId" class="tag host">房主</span>
-            <span v-if="p.isBot" class="tag bot">Bot</span>
-            <span v-if="p.id === myId" class="tag">我</span>
+      <div class="player-grid">
+        <div v-for="p in room.players" :key="p.id" class="player-card">
+          <div class="avatar">{{ initial(p.name) }}</div>
+          <div class="player-info">
+            <div class="player-name">
+              <strong>{{ p.name }}</strong>
+              <span v-if="p.id === room.hostId" class="tag host">房主</span>
+              <span v-if="p.isBot" class="tag bot">Bot</span>
+              <span v-if="p.id === myId" class="tag">我</span>
+            </div>
+            <div class="small">筹码 {{ p.chips }}</div>
           </div>
-          <div class="small">筹码 {{ p.chips }}</div>
         </div>
       </div>
 
-      <div v-if="isHost" class="row" style="margin-top:12px;">
-        <button class="ghost grow" :disabled="room.players.length >= 6" @click="addBot">+ 添加机器人</button>
-        <button class="grow" :disabled="room.players.length < 2 || starting" @click="startGame">
-          {{ starting ? '开始中…' : '开始游戏' }}
-        </button>
+      <div class="room-actions">
+        <template v-if="isHost">
+          <button class="ghost" :disabled="room.players.length >= 6" @click="addBot">+ 添加机器人</button>
+          <button :disabled="room.players.length < 2 || starting" @click="startGame">{{ starting ? '开始中…' : '开始游戏' }}</button>
+        </template>
+        <p v-else class="small center grow">等待房主开始游戏…</p>
+        <button class="ghost danger" @click="leave">退出房间</button>
       </div>
-      <p v-else class="small center">等待房主开始游戏…</p>
-
-      <button class="ghost danger" style="margin-top:auto;" @click="leave">退出房间</button>
 
       <p v-if="err" class="center" style="color:#ff8a80;">{{ err }}</p>
     </template>
@@ -52,6 +56,10 @@ const botCount = computed(() => room.value?.players.filter((p: any) => p.isBot).
 const err = ref('')
 const starting = ref(false)
 
+function initial(name: string) {
+  return name ? name.trim().charAt(0).toUpperCase() : '?'
+}
+
 onMounted(async () => {
   store.loadClientState()
   if (!store.token) {
@@ -59,7 +67,6 @@ onMounted(async () => {
     return
   }
   if (!store.playerId) {
-    // 尝试补 playerId
     await store.reconnect()
   }
   await refresh()
@@ -68,7 +75,6 @@ onMounted(async () => {
 async function refresh() {
   try {
     await store.fetchState(roomId)
-    // 若已开始，跳转到游戏页
     if (store.room?.status === 'playing') {
       await navigateTo(`/game/${roomId}`)
     }
@@ -109,3 +115,16 @@ watch(() => store.room?.status, (s) => {
   if (s === 'playing') navigateTo(`/game/${roomId}`)
 })
 </script>
+
+<style scoped>
+.room-shell { justify-content: flex-start; }
+.room-head { text-align: center; }
+.room-stats { text-align: center; margin: 2px 0; }
+.player-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 780px; margin: 0 auto; width: 100%; }
+.player-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: rgba(255,255,255,.06); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#334155,#1e293b); display: flex; align-items: center; justify-content: center; font-weight: 800; flex: 0 0 auto; }
+.player-info { min-width: 0; }
+.player-name { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.room-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+@media (max-width: 600px) { .player-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>

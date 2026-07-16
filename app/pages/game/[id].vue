@@ -1,94 +1,114 @@
 <template>
-  <div class="app-shell">
-    <div v-if="!room || !room.game" class="center">加载中…</div>
+  <div class="game-page">
+    <button class="icon-btn" title="刷新重连" @click="reconnect">⟳</button>
+    <button class="icon-btn leave-icon" title="退出" @click="leave">✕</button>
+
+    <div class="log-panel">
+      <button class="log-toggle" @click="logOpen = !logOpen">{{ logOpen ? '▾ 日志' : '▸ 日志' }}</button>
+      <div v-if="logOpen" class="log-list">
+        <div v-for="(l, i) in logList" :key="i" class="log-item">· {{ l }}</div>
+        <div v-if="!logList.length" class="log-item small">暂无记录</div>
+      </div>
+    </div>
+
+    <div v-if="!room || !room.game" class="loading">加载中…</div>
+
     <template v-else>
-      <div class="row" style="justify-content:space-between;">
-        <div class="small">阶段：{{ stageLabel }}</div>
-        <div class="small">底池：<strong style="color:var(--accent);">{{ room.game.pot }}</strong></div>
-      </div>
-
-      <div class="pot-bar">
-        <span v-if="room.game.community.length === 0" class="small">发牌前…</span>
-        <span v-for="(c, i) in room.game.community" :key="i" class="card-tile" :class="{ red: c.suit === 'H' || c.suit === 'D' }">
-          {{ cardStr(c) }}
-        </span>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <div v-for="(p, idx) in room.players" :key="p.id" class="player-row"
-             :class="{ active: idx === room.game.actionIdx, folded: p.folded }">
-          <div>
-            <strong>{{ p.name }}</strong>
-            <span v-if="p.id === room.hostId" class="tag host">房主</span>
-            <span v-if="p.isBot" class="tag bot">Bot</span>
-            <span v-if="idx === room.game.dealerIdx" class="tag dealer">D</span>
-            <span v-if="p.allIn" class="tag">全下</span>
-            <span v-if="p.bust" class="tag">出局</span>
+      <div class="table-area">
+        <div class="table">
+          <div class="community">
+            <PokerCard v-for="i in 5" :key="i" :card="community[i - 1] || null" :face="true" size="normal" />
           </div>
-          <div class="small" style="text-align:right;">
-            <div>筹码 {{ p.chips }}</div>
-            <div v-if="p.bet > 0">下注 {{ p.bet }}</div>
+          <div class="pot">
+            <span class="pot-label">底池</span>
+            <span class="chip lg" :class="chipClass(pot)">{{ pot }}</span>
+          </div>
+          <div class="stage">{{ stageLabel }}</div>
+          <div v-if="winners.length" class="winners">
+            <div v-for="w in winners" :key="w.playerId" class="winner-line">
+              <strong>{{ playerName(w.playerId) }}</strong> +{{ w.amount }}
+              <span v-if="w.hand" class="small">（{{ w.hand }}）</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-for="s in otherSeats"
+          :key="s.player.id"
+          class="seat"
+          :class="['seat-' + s.seatNo, { active: s.active, folded: s.player.folded, bust: s.player.bust }]"
+        >
+          <div class="seat-cards">
+            <PokerCard v-for="(c, ci) in otherHand(s.player)" :key="ci" :card="c" :face="revealStage" size="mini" />
+          </div>
+          <div class="seat-body">
+            <div class="avatar-wrap" :class="{ active: s.active }">
+              <div v-if="s.active" class="timer-ring" :style="{ '--p': s.timerPct }">
+                <div class="avatar">{{ initial(s.player.name) }}</div>
+              </div>
+              <div v-else class="avatar">{{ initial(s.player.name) }}</div>
+            </div>
+            <div class="seat-meta">
+              <div class="seat-name">{{ s.player.name }}</div>
+              <div class="seat-tags">
+                <span v-if="s.dealer" class="tag dealer">D</span>
+                <span v-if="s.sb" class="tag sb">SB</span>
+                <span v-if="s.bb" class="tag bb">BB</span>
+                <span v-if="s.player.isBot" class="tag bot">Bot</span>
+                <span v-if="s.player.folded" class="tag fold">弃牌</span>
+                <span v-if="s.player.allIn" class="tag allin">全下</span>
+                <span v-if="s.player.bust" class="tag fold">出局</span>
+                <span v-if="s.player.offline" class="tag offline">离线</span>
+                <span v-if="s.active" class="tag think">{{ s.remaining }}s</span>
+              </div>
+              <div class="seat-chips"><span class="chip" :class="chipClass(s.player.chips)">{{ s.player.chips }}</span></div>
+            </div>
+          </div>
+          <div v-if="s.player.bet > 0" class="seat-bet">
+            <span class="chip" :class="chipClass(s.player.bet)">{{ s.player.bet }}</span>
           </div>
         </div>
       </div>
 
-      <!-- 手牌 -->
-      <div v-if="me" class="pot-bar">
-        <div class="small" style="margin-bottom:4px;">我的手牌</div>
-        <template v-if="me.hand && me.hand.length">
-          <template v-for="(c, i) in me.hand" :key="i">
-            <span v-if="c" class="card-tile" :class="{ red: c.suit === 'H' || c.suit === 'D' }">
-              {{ cardStr(c) }}
-            </span>
-            <span v-else class="card-tile back">?</span>
+      <div class="bottom-zone">
+        <div v-if="me" class="me-seat" :class="{ active: isMyTurn }">
+          <div class="me-cards">
+            <PokerCard v-for="(c, ci) in myHand" :key="ci" :card="c" :face="true" size="big" />
+          </div>
+          <div class="me-info">
+            <div class="avatar-wrap" :class="{ active: isMyTurn }">
+              <div v-if="isMyTurn" class="timer-ring" :style="{ '--p': myTimerPct }">
+                <div class="avatar">{{ initial(me.name) }}</div>
+              </div>
+              <div v-else class="avatar">{{ initial(me.name) }}</div>
+            </div>
+            <div class="me-meta">
+              <div class="seat-name">{{ me.name }} <span class="tag">我</span></div>
+              <div class="seat-chips"><span class="chip lg" :class="chipClass(me.chips)">{{ me.chips }}</span></div>
+              <div v-if="me.bet > 0" class="small">当前下注 {{ me.bet }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-area">
+          <template v-if="isMyTurn && room.game.stage !== 'ended'">
+            <button class="danger" @click="doAction('fold')">弃牌</button>
+            <button @click="doAction(canCheck ? 'check' : 'call')">
+              {{ canCheck ? '过牌' : `跟注 ${toCall}` }}
+            </button>
+            <div class="raise-group">
+              <input v-model.number="raiseAmount" type="number" :min="minRaiseTo" :max="(me?.chips || 0) + (me?.bet || 0)" :placeholder="`加注到 ${minRaiseTo}`" />
+              <button @click="doRaise">加注</button>
+            </div>
+            <button class="ghost" @click="doAction('allin')">全下 ({{ me?.chips || 0 }})</button>
           </template>
-        </template>
-      </div>
-
-      <!-- 倒计时 -->
-      <div v-if="isMyTurn" class="small">
-        剩余思考时间 {{ remaining }}s
-        <div class="progress"><span :style="{ width: progressPct + '%' }" /></div>
-      </div>
-
-      <!-- 日志 -->
-      <div class="log">
-        <div v-for="(l, i) in room.game.log.slice().reverse()" :key="i">· {{ l }}</div>
-      </div>
-
-      <!-- 摊牌信息 -->
-      <div v-if="room.game.stage === 'ended' && room.game.winners" class="pot-bar">
-        <strong style="color:var(--accent);">本局结算</strong>
-        <div v-for="w in room.game.winners" :key="w.playerId" class="small">
-          {{ playerName(w.playerId) }} + {{ w.amount }} <span v-if="w.hand">（{{ w.hand }}）</span>
+          <div v-else-if="room.game.stage !== 'ended'" class="wait-text">等待 {{ actionPlayerName }} 行动…</div>
+          <div v-else class="wait-text">本局结束</div>
         </div>
       </div>
-
-      <!-- 动作区 -->
-      <div v-if="isMyTurn && room.game.stage !== 'ended'" style="display:flex;flex-direction:column;gap:8px;">
-        <div class="row">
-          <button class="danger grow" @click="doAction('fold')">弃牌</button>
-          <button class="grow" @click="doAction(canCheck ? 'check' : 'call')">
-            {{ canCheck ? '过牌' : `跟注 ${toCall}` }}
-          </button>
-        </div>
-        <div class="row">
-          <input v-model.number="raiseAmount" type="number" :min="minRaiseTo" :max="me.chips + me.bet"
-                 :placeholder="`加注到 ${minRaiseTo}`" />
-          <button class="grow" @click="doRaise">加注</button>
-        </div>
-        <button class="ghost" @click="doAction('allin')">全下（{{ me.chips }}）</button>
-      </div>
-      <div v-else-if="room.game.stage !== 'ended'" class="small center">
-        等待 {{ actionPlayerName }} 行动…
-      </div>
-
-      <div class="row" style="margin-top:auto;">
-        <button class="ghost grow" @click="reconnect">🔄 断线重连</button>
-        <button class="ghost danger grow" @click="leave">退出</button>
-      </div>
-      <p v-if="err" class="center small" style="color:#ff8a80;">{{ err }}</p>
     </template>
+
+    <p v-if="err" class="err">{{ err }}</p>
   </div>
 </template>
 
@@ -106,40 +126,112 @@ const me = computed<any>(() => store.me)
 const err = ref('')
 const raiseAmount = ref<number | null>(null)
 const now = ref(Date.now())
+const logOpen = ref(false)
 
+const CLOCKWISE = [1, 2, 3, 4, 5, 6]
+
+const game = computed(() => room.value?.game)
+const players = computed(() => room.value?.players || [])
+const myIndex = computed(() => players.value.findIndex((p: any) => p.id === store.playerId))
+
+const revealStage = computed(() => {
+  const s = game.value?.stage
+  return s === 'showdown' || s === 'ended'
+})
 const stageLabel = computed(() => {
-  const s = room.value?.game?.stage
-  return { preflop: '翻牌前', flop: '翻牌', turn: '转牌', river: '河牌', showdown: '摊牌', ended: '结算' }[s as string] || s
+  const map: Record<string, string> = {
+    preflop: 'PRE-FLOP', flop: 'FLOP', turn: 'TURN', river: 'RIVER',
+    showdown: 'SHOWDOWN', ended: 'SHOWDOWN'
+  }
+  return map[game.value?.stage as string] || ''
 })
 
-const isMyTurn = computed(() => {
-  const g = room.value?.game
-  if (!g || g.stage === 'ended') return false
-  return room.value.players[g.actionIdx]?.id === store.playerId
+const community = computed(() => game.value?.community || [])
+const pot = computed(() => game.value?.pot || 0)
+const winners = computed(() => game.value?.winners || [])
+const logList = computed(() => (game.value?.log || []).slice().reverse())
+
+const count = computed(() => players.value.length || 1)
+const dealerIdx = computed(() => game.value?.dealerIdx ?? -1)
+const actionIdx = computed(() => game.value?.actionIdx ?? -1)
+const sbIdx = computed(() => {
+  const d = dealerIdx.value
+  if (d < 0) return -1
+  return count.value === 2 ? d : (d + 1) % count.value
 })
-const toCall = computed(() => Math.max(0, (room.value?.game?.currentBet || 0) - (me.value?.bet || 0)))
-const canCheck = computed(() => toCall.value === 0)
-const minRaiseTo = computed(() => (room.value?.game?.currentBet || 0) + (room.value?.game?.minRaise || 20))
+const bbIdx = computed(() => {
+  const d = dealerIdx.value
+  if (d < 0) return -1
+  return count.value === 2 ? (d + 1) % count.value : (d + 2) % count.value
+})
+
 const remaining = computed(() => {
-  const d = room.value?.game?.actionDeadline || 0
+  const d = game.value?.actionDeadline || 0
   return Math.max(0, Math.ceil((d - now.value) / 1000))
 })
-const progressPct = computed(() => Math.max(0, Math.min(100, (remaining.value / 60) * 100)))
+const timerPctVal = computed(() => Math.max(0, Math.min(100, (remaining.value / 60) * 100)))
 
-const actionPlayerName = computed(() => {
-  const g = room.value?.game
-  if (!g) return ''
-  return room.value.players[g.actionIdx]?.name || ''
+const isMyTurn = computed(() => {
+  const g = game.value
+  if (!g || g.stage === 'ended') return false
+  return players.value[actionIdx.value]?.id === store.playerId
 })
+const toCall = computed(() => Math.max(0, (game.value?.currentBet || 0) - (me.value?.bet || 0)))
+const canCheck = computed(() => toCall.value === 0)
+const minRaiseTo = computed(() => (game.value?.currentBet || 0) + (game.value?.minRaise || 20))
+const actionPlayerName = computed(() => players.value[actionIdx.value]?.name || '')
+const myTimerPct = computed(() => (isMyTurn.value ? timerPctVal.value : 0))
+
+const seats = computed(() => {
+  const ps = players.value
+  const n = ps.length
+  if (!n) return []
+  const mi = myIndex.value >= 0 ? myIndex.value : 0
+  const out: any[] = []
+  for (let i = 0; i < n; i++) {
+    const offset = (((i - mi) % n) + n) % n
+    const seatNo = CLOCKWISE[(4 + offset) % 6]
+    const p = ps[i]
+    const active = i === actionIdx.value && game.value?.stage !== 'ended'
+    out.push({
+      player: p, seatNo, idx: i,
+      isMe: p.id === store.playerId,
+      active,
+      dealer: i === dealerIdx.value,
+      sb: i === sbIdx.value,
+      bb: i === bbIdx.value,
+      remaining: active ? remaining.value : 0,
+      timerPct: active ? timerPctVal.value : 0
+    })
+  }
+  out.sort((a, b) => a.seatNo - b.seatNo)
+  return out
+})
+const otherSeats = computed(() => seats.value.filter((s: any) => !s.isMe))
+
+const myHand = computed(() => {
+  const h = me.value?.hand
+  return h && h.length ? h : [null, null]
+})
+function otherHand(p: any) {
+  if (revealStage.value && p?.hand?.length) return p.hand
+  return [null, null]
+}
 
 function playerName(id: string) {
-  return room.value?.players.find((p: any) => p.id === id)?.name || '?'
+  return players.value.find((p: any) => p.id === id)?.name || '?'
 }
-function cardStr(c: any) {
-  if (!c) return ''
-  const map: Record<number, string> = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A' }
-  const suit = { S: '♠', H: '♥', D: '♦', C: '♣' }[c.suit as 'S' | 'H' | 'D' | 'C']
-  return suit + (map[c.rank] || c.rank)
+function initial(name: string) {
+  return name ? name.trim().charAt(0).toUpperCase() : '?'
+}
+function chipClass(v: any) {
+  const x = Number(v) || 0
+  if (x >= 1000) return 'black'
+  if (x >= 500) return 'purple'
+  if (x >= 200) return 'orange'
+  if (x >= 100) return 'green'
+  if (x >= 50) return 'blue'
+  return ''
 }
 
 onMounted(async () => {
@@ -152,9 +244,7 @@ onMounted(async () => {
 async function refresh() {
   try {
     await store.fetchState(roomId)
-    if (store.room?.status === 'waiting') {
-      await navigateTo(`/room/${roomId}`)
-    }
+    if (store.room?.status === 'waiting') await navigateTo(`/room/${roomId}`)
   } catch (e: any) {
     err.value = e?.statusMessage || 'load failed'
   }
@@ -173,26 +263,139 @@ if (import.meta.client) {
 onBeforeUnmount(() => { pause(); tick.pause() })
 
 async function doAction(a: string, amount?: number) {
-  try {
-    await store.action(a, amount)
-  } catch (e: any) {
-    err.value = e?.statusMessage || 'action failed'
-  }
+  try { await store.action(a, amount) }
+  catch (e: any) { err.value = e?.statusMessage || 'action failed' }
 }
 async function doRaise() {
   const amt = Number(raiseAmount.value)
-  if (!amt || amt < minRaiseTo.value) {
-    err.value = `加注最少 ${minRaiseTo.value}`
-    return
-  }
+  if (!amt || amt < minRaiseTo.value) { err.value = `加注最小 ${minRaiseTo.value}`; return }
   await doAction('raise', amt)
   raiseAmount.value = null
 }
-async function reconnect() {
-  await refresh()
-}
-async function leave() {
-  await store.leave()
-  await navigateTo('/')
-}
+async function reconnect() { err.value = ''; await refresh() }
+async function leave() { await store.leave(); await navigateTo('/') }
 </script>
+
+<style scoped>
+.game-page {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(ellipse at center, #0a2418 0%, var(--bg2) 70%);
+}
+
+.icon-btn {
+  position: absolute;
+  top: 8px;
+  z-index: 30;
+  width: 34px; height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,.4);
+  color: var(--text);
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--panel-border);
+}
+.icon-btn:first-of-type { left: 8px; }
+.leave-icon { left: 48px; }
+
+.loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 16px;
+}
+
+.log-panel { position: absolute; top: 8px; right: 8px; z-index: 30; max-width: 240px; }
+.log-toggle {
+  width: 100%; min-height: 32px; padding: 4px 10px; font-size: 12px;
+  background: rgba(0,0,0,.45); color: var(--text); border: 1px solid var(--panel-border);
+}
+.log-list {
+  margin-top: 6px; max-height: 200px; overflow-y: auto;
+  background: rgba(0,0,0,.55); border: 1px solid var(--panel-border);
+  border-radius: 8px; padding: 6px 8px; font-size: 11px; line-height: 1.5;
+}
+.log-item { color: var(--text); }
+
+.table-area { position: relative; flex: 1; min-height: 0; }
+.table {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 70%; height: 72%;
+  border-radius: 50% / 50%;
+  background: radial-gradient(ellipse at center, var(--felt-light) 0%, var(--felt) 55%, var(--felt-dark) 100%);
+  border: 8px solid var(--rail);
+  box-shadow: 0 0 0 3px var(--gold), inset 0 0 60px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.5);
+}
+.community { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); display: flex; gap: 6px; }
+.pot {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 20px; font-weight: 800; color: var(--gold); text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+.pot-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.stage { position: absolute; left: 50%; top: 68%; transform: translateX(-50%); font-size: 12px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
+.winners {
+  position: absolute; left: 50%; top: 80%; transform: translateX(-50%); text-align: center;
+  background: rgba(0,0,0,.5); border: 1px solid var(--gold); border-radius: 8px; padding: 4px 10px; font-size: 12px;
+}
+.winner-line { white-space: nowrap; }
+
+.seat { position: absolute; width: 108px; display: flex; flex-direction: column; align-items: center; gap: 3px; z-index: 5; }
+.seat-cards { display: flex; gap: 3px; }
+.seat-body { display: flex; align-items: center; gap: 6px; }
+.avatar-wrap { position: relative; }
+.timer-ring {
+  width: 42px; height: 42px; border-radius: 50%; padding: 3px;
+  background: conic-gradient(var(--gold) calc(var(--p) * 1%), rgba(255,255,255,.1) 0);
+  display: flex; align-items: center; justify-content: center;
+}
+.avatar {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: linear-gradient(135deg, #334155, #1e293b);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #fff; font-size: 15px; border: 2px solid rgba(255,255,255,.15);
+}
+.seat-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.seat-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 64px; }
+.seat-tags { display: flex; flex-wrap: wrap; gap: 2px; }
+.seat-tags .tag { margin-left: 0; }
+.seat-chips { display: flex; }
+.seat-bet { position: absolute; z-index: 6; }
+.seat-1 { top: 4%; left: 8%; }
+.seat-2 { top: 0; left: 50%; transform: translateX(-50%); }
+.seat-3 { top: 4%; right: 8%; }
+.seat-4 { top: 56%; right: 8%; }
+.seat-6 { top: 56%; left: 8%; }
+.seat-1 .seat-bet, .seat-6 .seat-bet { right: -6px; top: 46%; }
+.seat-3 .seat-bet, .seat-4 .seat-bet { left: -6px; top: 46%; }
+.seat-2 .seat-bet { bottom: -10px; left: 50%; transform: translateX(-50%); }
+.seat.active { background: rgba(245,197,24,.08); border-radius: 12px; padding: 4px; animation: seatPulse 1.2s infinite; }
+.seat.folded { opacity: 0.45; }
+.seat.bust { opacity: 0.3; }
+
+.bottom-zone {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 4px 10px calc(6px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(0,0,0,.55), transparent);
+}
+.me-seat { display: flex; align-items: center; gap: 12px; padding: 2px 10px; border-radius: 12px; }
+.me-seat.active { animation: seatPulse 1.2s infinite; }
+.me-cards { display: flex; gap: 6px; }
+.me-info { display: flex; align-items: center; gap: 8px; }
+.me-meta { display: flex; flex-direction: column; gap: 2px; }
+.me-meta .seat-name { max-width: 120px; font-size: 14px; }
+.action-area { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.raise-group { display: flex; align-items: center; gap: 6px; }
+.raise-group input { width: 110px; }
+.wait-text { color: var(--muted); font-size: 13px; }
+
+.err {
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  color: #ff8a80; font-size: 12px; z-index: 40; background: rgba(0,0,0,.6); padding: 2px 8px; border-radius: 6px;
+}
+</style>
