@@ -16,6 +16,10 @@
     <template v-else>
       <div class="table-area">
         <div class="table">
+          <div class="dealer">
+            <div class="dealer-avatar">🎩</div>
+            <div class="dealer-label">荷官</div>
+          </div>
           <div class="community">
             <PokerCard v-for="i in 5" :key="i" :card="community[i - 1] || null" :face="true" size="normal" />
           </div>
@@ -33,12 +37,12 @@
         </div>
 
         <div
-          v-for="s in otherSeats"
+          v-for="s in seats"
           :key="s.player.id"
           class="seat"
-          :class="['seat-' + s.seatNo, { active: s.active, folded: s.player.folded, bust: s.player.bust }]"
+          :class="['seat-' + s.seatNo, { active: s.active, folded: s.player.folded, bust: s.player.bust, me: s.isMe }]"
         >
-          <div class="seat-cards">
+          <div v-if="!s.isMe" class="seat-cards">
             <PokerCard v-for="(c, ci) in otherHand(s.player)" :key="ci" :card="c" :face="revealStage" size="mini" />
           </div>
           <div class="seat-body">
@@ -49,7 +53,7 @@
               <div v-else class="avatar">{{ initial(s.player.name) }}</div>
             </div>
             <div class="seat-meta">
-              <div class="seat-name">{{ s.player.name }}</div>
+              <div class="seat-name">{{ s.player.name }}<span v-if="s.isMe" class="tag">我</span></div>
               <div class="seat-tags">
                 <span v-if="s.dealer" class="tag dealer">D</span>
                 <span v-if="s.sb" class="tag sb">SB</span>
@@ -74,19 +78,6 @@
         <div v-if="me" class="me-seat" :class="{ active: isMyTurn }">
           <div class="me-cards">
             <PokerCard v-for="(c, ci) in myHand" :key="ci" :card="c" :face="true" size="big" />
-          </div>
-          <div class="me-info">
-            <div class="avatar-wrap" :class="{ active: isMyTurn }">
-              <div v-if="isMyTurn" class="timer-ring" :style="{ '--p': myTimerPct }">
-                <div class="avatar">{{ initial(me.name) }}</div>
-              </div>
-              <div v-else class="avatar">{{ initial(me.name) }}</div>
-            </div>
-            <div class="me-meta">
-              <div class="seat-name">{{ me.name }} <span class="tag">我</span></div>
-              <div class="seat-chips"><span class="chip lg" :class="chipClass(me.chips)">{{ me.chips }}</span></div>
-              <div v-if="me.bet > 0" class="small">当前下注 {{ me.bet }}</div>
-            </div>
           </div>
         </div>
 
@@ -128,7 +119,7 @@ const raiseAmount = ref<number | null>(null)
 const now = ref(Date.now())
 const logOpen = ref(false)
 
-const CLOCKWISE = [1, 2, 3, 4, 5, 6]
+const CLOCKWISE = [5, 4, 3, 2, 1, 6]
 
 const game = computed(() => room.value?.game)
 const players = computed(() => room.value?.players || [])
@@ -190,7 +181,7 @@ const seats = computed(() => {
   const out: any[] = []
   for (let i = 0; i < n; i++) {
     const offset = (((i - mi) % n) + n) % n
-    const seatNo = CLOCKWISE[(4 + offset) % 6]
+    const seatNo = CLOCKWISE[offset % 6]
     const p = ps[i]
     const active = i === actionIdx.value && game.value?.stage !== 'ended'
     out.push({
@@ -207,7 +198,6 @@ const seats = computed(() => {
   out.sort((a, b) => a.seatNo - b.seatNo)
   return out
 })
-const otherSeats = computed(() => seats.value.filter((s: any) => !s.isMe))
 
 const myHand = computed(() => {
   const h = me.value?.hand
@@ -366,14 +356,32 @@ async function leave() { await store.leave(); await navigateTo('/') }
 .seat-tags .tag { margin-left: 0; }
 .seat-chips { display: flex; }
 .seat-bet { position: absolute; z-index: 6; }
-.seat-1 { top: 3%; left: 15%; }
-.seat-2 { top: 1%; left: 50%; transform: translateX(-50%); }
-.seat-3 { top: 3%; right: 15%; }
-.seat-4 { top: 42%; right: 2%; }
+.seat-1 { top: 4%;  left: 18%; }
+.seat-2 { top: 4%;  right: 18%; }
+.seat-3 { top: 42%; right: 2%; }
+.seat-4 { bottom: 22%; right: 22%; }
+.seat-5 { bottom: 22%; left: 22%; }
 .seat-6 { top: 42%; left: 2%; }
-.seat-1 .seat-bet, .seat-6 .seat-bet { right: -6px; top: 46%; }
-.seat-3 .seat-bet, .seat-4 .seat-bet { left: -6px; top: 46%; }
-.seat-2 .seat-bet { bottom: -10px; left: 50%; transform: translateX(-50%); }
+.seat-1 .seat-bet, .seat-6 .seat-bet, .seat-5 .seat-bet { right: -6px; top: 46%; }
+.seat-2 .seat-bet, .seat-3 .seat-bet, .seat-4 .seat-bet { left: -6px; top: 46%; }
+
+.dealer {
+  position: absolute; top: -2%; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  z-index: 4; pointer-events: none;
+}
+.dealer-avatar {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #2a2f3a, #0f1218);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 2px rgba(245,197,24,.3), 0 4px 10px rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.dealer-label {
+  font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+}
 .seat.active { background: rgba(245,197,24,.08); border-radius: 12px; padding: 4px; animation: seatPulse 1.2s infinite; }
 .seat.folded { opacity: 0.45; }
 .seat.bust { opacity: 0.3; }
