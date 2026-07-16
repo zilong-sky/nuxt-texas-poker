@@ -92,15 +92,15 @@
 
         <div class="action-area">
           <template v-if="isMyTurn && room.game.stage !== 'ended'">
-            <button class="danger" @click="doAction('fold')">弃牌</button>
-            <button @click="doAction(canCheck ? 'check' : 'call')">
+            <button class="btn-fold" @click="doAction('fold')">弃牌</button>
+            <button class="btn-call" @click="doAction(canCheck ? 'check' : 'call')">
               {{ canCheck ? '过牌' : `跟注 ${toCall}` }}
             </button>
             <div class="raise-group">
               <input v-model.number="raiseAmount" type="number" :min="minRaiseTo" :max="(me?.chips || 0) + (me?.bet || 0)" :placeholder="`加注到 ${minRaiseTo}`" />
-              <button @click="doRaise">加注</button>
+              <button class="btn-raise" @click="doRaise">加注</button>
             </div>
-            <button class="ghost" @click="doAction('allin')">全下 ({{ me?.chips || 0 }})</button>
+            <button class="btn-allin" @click="doAction('allin')">全下 ({{ me?.chips || 0 }})</button>
           </template>
           <div v-else-if="room.game.stage !== 'ended'" class="wait-text">等待 {{ actionPlayerName }} 行动…</div>
           <div v-else class="wait-text">本局结束</div>
@@ -325,20 +325,20 @@ async function leave() { await store.leave(); await navigateTo('/') }
 .table-area { position: relative; flex: 1; min-height: 0; }
 .table {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 70%; height: 72%;
+  width: 85%; height: 80%;
   border-radius: 50% / 50%;
   background: radial-gradient(ellipse at center, var(--felt-light) 0%, var(--felt) 55%, var(--felt-dark) 100%);
-  border: 8px solid var(--rail);
-  box-shadow: 0 0 0 3px var(--gold), inset 0 0 60px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.5);
+  border: 12px solid var(--rail);
+  box-shadow: 0 0 0 4px var(--gold), 0 0 0 6px rgba(245,197,24,.35), inset 0 0 80px rgba(0,0,0,.55), 0 14px 34px rgba(0,0,0,.6);
 }
-.community { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); display: flex; gap: 6px; }
+.community { position: absolute; left: 50%; top: 26%; transform: translateX(-50%); display: flex; gap: 8px; }
 .pot {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%);
   display: flex; align-items: center; gap: 8px;
   font-size: 20px; font-weight: 800; color: var(--gold); text-shadow: 0 1px 3px rgba(0,0,0,.6);
 }
 .pot-label { font-size: 12px; color: var(--muted); font-weight: 600; }
-.stage { position: absolute; left: 50%; top: 68%; transform: translateX(-50%); font-size: 12px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
+.stage { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); font-size: 12px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
 .winners {
   position: absolute; left: 50%; top: 80%; transform: translateX(-50%); text-align: center;
   background: rgba(0,0,0,.5); border: 1px solid var(--gold); border-radius: 8px; padding: 4px 10px; font-size: 12px;
@@ -366,11 +366,11 @@ async function leave() { await store.leave(); await navigateTo('/') }
 .seat-tags .tag { margin-left: 0; }
 .seat-chips { display: flex; }
 .seat-bet { position: absolute; z-index: 6; }
-.seat-1 { top: 4%; left: 8%; }
-.seat-2 { top: 0; left: 50%; transform: translateX(-50%); }
-.seat-3 { top: 4%; right: 8%; }
-.seat-4 { top: 56%; right: 8%; }
-.seat-6 { top: 56%; left: 8%; }
+.seat-1 { top: 3%; left: 15%; }
+.seat-2 { top: 1%; left: 50%; transform: translateX(-50%); }
+.seat-3 { top: 3%; right: 15%; }
+.seat-4 { top: 42%; right: 2%; }
+.seat-6 { top: 42%; left: 2%; }
 .seat-1 .seat-bet, .seat-6 .seat-bet { right: -6px; top: 46%; }
 .seat-3 .seat-bet, .seat-4 .seat-bet { left: -6px; top: 46%; }
 .seat-2 .seat-bet { bottom: -10px; left: 50%; transform: translateX(-50%); }
@@ -398,4 +398,32 @@ async function leave() { await store.leave(); await navigateTo('/') }
   position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
   color: #ff8a80; font-size: 12px; z-index: 40; background: rgba(0,0,0,.6); padding: 2px 8px; border-radius: 6px;
 }
+/* --- optimized action bar (per CHANGE_REQUEST) --- */
+.action-area { gap: 10px; padding: 4px 0 2px; }
+.action-area button.btn-fold,
+.action-area button.btn-call,
+.action-area button.btn-raise,
+.action-area button.btn-allin {
+  min-width: 84px; min-height: 52px;
+  border-radius: 10px; border: none; padding: 0 14px;
+  font-weight: 800; font-size: 15px; letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25);
+  cursor: pointer; transition: transform .08s ease, filter .15s ease;
+}
+.action-area button.btn-fold:active,
+.action-area button.btn-call:active,
+.action-area button.btn-raise:active,
+.action-area button.btn-allin:active { transform: translateY(1px); filter: brightness(.95); }
+.action-area .btn-fold  { background: linear-gradient(135deg, #e53935, #b71c1c); color: #fff; }
+.action-area .btn-call  { background: linear-gradient(135deg, #ffb300, #ff8f00); color: #1a1a1a; }
+.action-area .btn-raise { background: linear-gradient(135deg, #42a5f5, #1565c0); color: #fff; }
+.action-area .btn-allin { background: linear-gradient(135deg, #f5f5f5, #e0e0e0); color: #1a1a1a; }
+.action-area .raise-group { display: flex; align-items: center; gap: 6px; }
+.action-area .raise-group input {
+  width: 80px; height: 44px; padding: 0 8px; border-radius: 8px;
+  border: 1px solid var(--panel-border); background: rgba(0,0,0,.35);
+  color: var(--text); font-size: 14px; text-align: center;
+}
+.me-seat { flex-direction: column; gap: 4px; }
+.me-cards { gap: 8px; }
 </style>
