@@ -53,7 +53,7 @@ const err = ref('')
 const starting = ref(false)
 
 onMounted(async () => {
-  store.loadToken()
+  store.loadClientState()
   if (!store.token) {
     await navigateTo('/')
     return

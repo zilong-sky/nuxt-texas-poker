@@ -48,14 +48,25 @@ export const kv = {
   async expire(key: string, seconds: number): Promise<number> {
     return await redis.expire(key, seconds)
   },
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    if (!members.length) return 0
+    return await redis.sadd(key, ...members)
+  },
+  async srem(key: string, ...members: string[]): Promise<number> {
+    if (!members.length) return 0
+    return await redis.srem(key, ...members)
+  },
+  async smembers(key: string): Promise<string[]> {
+    return await redis.smembers(key)
+  },
 }
 
 /** 房间 KV Key */
 export const ROOM_KEY = (id: string) => `room:${id}`
-/** 密码 -> 房间 ID 索引 Key */
-export const ROOM_PW_KEY = (pw: string) => `room:pw:${pw}`
 /** 会话 Key */
 export const SESSION_KEY = (token: string) => `session:${token}`
+/** 等待中房间 id 集合 */
+export const ROOMS_WAITING_KEY = 'rooms:waiting'
 
 /** 24 小时 TTL（秒） */
 export const KV_TTL_SEC = 60 * 60 * 24

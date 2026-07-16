@@ -143,7 +143,7 @@ function cardStr(c: any) {
 }
 
 onMounted(async () => {
-  store.loadToken()
+  store.loadClientState()
   if (!store.token) { await navigateTo('/'); return }
   if (!store.playerId) await store.reconnect()
   await refresh()

@@ -1,5 +1,5 @@
-import { defineEventHandler, readBody, createError } from 'h3'
-import { loadRoom, loadSession, saveRoom } from '~~/server/utils/store'
+﻿import { defineEventHandler, readBody, createError } from 'h3'
+import { loadRoom, loadSession, saveRoom, unmarkRoomWaiting } from '~~/server/utils/store'
 import { newPlayer } from '~~/server/utils/game'
 import { MAX_PLAYERS } from '~~/server/utils/types'
 import { sanitizeRoom } from '~~/server/utils/sanitize'
@@ -25,12 +25,22 @@ export default defineEventHandler(async (event) => {
   if (room.players.length >= MAX_PLAYERS) {
     throw createError({ statusCode: 400, statusMessage: 'ROOM_FULL' })
   }
-  const botCount = room.players.filter(p => p.isBot).length + 1
+  // 生成不与任何玩家（含 Bot）冲突的 Bot-N
+  const used = new Set(room.players.map(p => p.name))
+  let n = 1
+  let botName = `Bot-${n}`
+  while (used.has(botName)) {
+    n++
+    botName = `Bot-${n}`
+  }
   const usedSeats = new Set(room.players.map(p => p.seat))
   let seat = 0
   while (usedSeats.has(seat)) seat++
-  const bot = newPlayer(`Bot-${botCount}`, true, seat)
+  const bot = newPlayer(botName, true, seat)
   room.players.push(bot)
+  if (room.players.length >= MAX_PLAYERS) {
+    await unmarkRoomWaiting(room.id)
+  }
   await saveRoom(room)
   return { room: sanitizeRoom(room, session.playerId) }
 })

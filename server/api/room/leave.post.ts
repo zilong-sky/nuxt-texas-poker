@@ -1,4 +1,4 @@
-import { defineEventHandler, readBody, createError } from 'h3'
+﻿import { defineEventHandler, readBody, createError } from 'h3'
 import { deleteRoom, loadRoom, loadSession, saveRoom } from '~~/server/utils/store'
 
 /**
@@ -20,12 +20,10 @@ export default defineEventHandler(async (event) => {
     const nextHuman = room.players.find(p => !p.isBot)
     if (nextHuman) room.hostId = nextHuman.id
   }
-  // 若真人全走，清空 bot
   const anyHuman = room.players.some(p => !p.isBot)
   if (!anyHuman) {
     room.players = []
     room.emptyAt = Date.now()
-    // 房间在 state 轮询里超过 10min 才真正删；这里直接删掉更省
     await deleteRoom(room)
     return { ok: true }
   }

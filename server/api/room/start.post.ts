@@ -1,5 +1,5 @@
-import { defineEventHandler, readBody, createError } from 'h3'
-import { loadRoom, loadSession, saveRoom } from '~~/server/utils/store'
+﻿import { defineEventHandler, readBody, createError } from 'h3'
+import { loadRoom, loadSession, saveRoom, unmarkRoomWaiting } from '~~/server/utils/store'
 import { advanceIfTimedOut, startNewHand } from '~~/server/utils/game'
 import { sanitizeRoom } from '~~/server/utils/sanitize'
 
@@ -26,7 +26,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'NEED_AT_LEAST_2' })
   }
   startNewHand(room)
-  // 若首个行动位是 Bot，立即推进
+  await unmarkRoomWaiting(room.id)
+  // 若首轮行动是 Bot，立即推进
   advanceIfTimedOut(room)
   await saveRoom(room)
   return { room: sanitizeRoom(room, session.playerId) }

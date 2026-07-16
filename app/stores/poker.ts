@@ -1,12 +1,13 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 
 /**
- * 全局房间状态：轮询、动作、断线重连。
+ * 全局房间状态：昵称、token、房间信息、动作、断线重连。
  */
 export const usePokerStore = defineStore('poker', {
   state: () => ({
     token: '' as string,
     playerId: '' as string,
+    nickname: '' as string,
     room: null as any,
     error: '' as string,
     loading: false as boolean
@@ -21,9 +22,10 @@ export const usePokerStore = defineStore('poker', {
     }
   },
   actions: {
-    loadToken() {
+    loadClientState() {
       if (import.meta.client) {
         this.token = localStorage.getItem('pokerToken') || ''
+        this.nickname = localStorage.getItem('pokerNickname') || ''
       }
     },
     setToken(t: string) {
@@ -34,24 +36,57 @@ export const usePokerStore = defineStore('poker', {
       this.token = ''
       if (import.meta.client) localStorage.removeItem('pokerToken')
     },
-    async join(password: string, name?: string) {
+    setNickname(name: string) {
+      this.nickname = name
+      if (import.meta.client) {
+        if (name) localStorage.setItem('pokerNickname', name)
+        else localStorage.removeItem('pokerNickname')
+      }
+    },
+    async createRoom(password: string, nickname: string) {
+      this.loading = true
+      this.error = ''
+      try {
+        const res = await $fetch<any>('/api/room/create', {
+          method: 'POST',
+          body: { password, nickname }
+        })
+        this.setToken(res.token)
+        this.setNickname(nickname)
+        this.playerId = res.playerId
+        this.room = res.room
+        return res.roomId as string
+      } catch (e: any) {
+        this.error = e?.statusMessage || e?.data?.statusMessage || 'CREATE_FAILED'
+        throw e
+      } finally {
+        this.loading = false
+      }
+    },
+    async joinRoom(roomId: string, nickname: string) {
       this.loading = true
       this.error = ''
       try {
         const res = await $fetch<any>('/api/room/join', {
           method: 'POST',
-          body: { password, name }
+          body: { roomId, nickname }
         })
         this.setToken(res.token)
+        this.setNickname(nickname)
         this.playerId = res.playerId
         this.room = res.room
-        return res.room.id as string
+        return res.roomId as string
       } catch (e: any) {
         this.error = e?.statusMessage || e?.data?.statusMessage || 'JOIN_FAILED'
         throw e
       } finally {
         this.loading = false
       }
+    },
+    async listRooms() {
+      return await $fetch<Array<{ id: string; hostName: string; playerCount: number; maxPlayers: number }>>(
+        '/api/room/list'
+      )
     },
     async fetchState(roomId: string) {
       try {
@@ -95,7 +130,7 @@ export const usePokerStore = defineStore('poker', {
       this.clearToken()
     },
     async reconnect(): Promise<string | null> {
-      this.loadToken()
+      this.loadClientState()
       if (!this.token) return null
       try {
         const res = await $fetch<any>('/api/room/reconnect', {

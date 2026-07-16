@@ -1,5 +1,5 @@
-import type { H3Event } from 'h3'
-import { kv, ROOM_KEY, SESSION_KEY, KV_TTL_SEC } from './kv'
+﻿import type { H3Event } from 'h3'
+import { kv, ROOM_KEY, ROOMS_WAITING_KEY, SESSION_KEY, KV_TTL_SEC } from './kv'
 import type { Room, Session } from './types'
 
 /** 加载房间；找不到返回 null */
@@ -13,10 +13,38 @@ export async function saveRoom(room: Room): Promise<void> {
   await kv.set(ROOM_KEY(room.id), room, { ex: KV_TTL_SEC })
 }
 
-/** 删除房间及其密码索引 */
+/** 删除房间 */
 export async function deleteRoom(room: Room): Promise<void> {
   await kv.del(ROOM_KEY(room.id))
-  await kv.del(`room:pw:${room.password}`)
+  await kv.srem(ROOMS_WAITING_KEY, room.id)
+}
+
+/** 把房间加入等待列表 */
+export async function markRoomWaiting(roomId: string): Promise<void> {
+  await kv.sadd(ROOMS_WAITING_KEY, roomId)
+}
+
+/** 从等待列表移除 */
+export async function unmarkRoomWaiting(roomId: string): Promise<void> {
+  await kv.srem(ROOMS_WAITING_KEY, roomId)
+}
+
+/** 列出所有等待中的房间（会自动清理已失效条目） */
+export async function listWaitingRooms(): Promise<Room[]> {
+  const ids = await kv.smembers(ROOMS_WAITING_KEY)
+  if (!ids.length) return []
+  const rooms: Room[] = []
+  const stale: string[] = []
+  for (const id of ids) {
+    const room = await loadRoom(id)
+    if (!room || room.status !== 'waiting') {
+      stale.push(id)
+      continue
+    }
+    rooms.push(room)
+  }
+  if (stale.length) await kv.srem(ROOMS_WAITING_KEY, ...stale)
+  return rooms
 }
 
 /** 根据 token 找 session */
