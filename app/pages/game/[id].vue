@@ -380,15 +380,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   background: #0a0d14;
   font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
-@media (orientation: portrait) {
-  .game-page {
-    inset: auto;
-    top: 0; left: 100dvw;
-    width: 100dvh; height: 100dvw;
-    transform: rotate(90deg);
-    transform-origin: top left;
-  }
-}
+/* removed forced-portrait rotate hack: user rotates device manually */
 
 
 /* ---------- 左侧竖向功能栏 ---------- */
@@ -653,12 +645,12 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 28%; bottom: -12%; transform: translateX(-50%); }
-.seat-2 { right: 6%;  bottom: -12%; }
-.seat-3 { right: 6%;  top: -12%; }
-.seat-4 { right: 28%; top: -12%; transform: translateX(50%); }
-.seat-5 { left: 28%;  top: -12%; transform: translateX(-50%); }
-.seat-6 { left: 6%;   bottom: -12%; }
+.seat-1 { left: 30%; top: 78%; transform: translate(-50%, -50%); }
+.seat-2 { left: 78%; top: 70%; transform: translate(-50%, -50%); }
+.seat-3 { left: 78%; top: 30%; transform: translate(-50%, -50%); }
+.seat-4 { left: 65%; top: 22%; transform: translate(-50%, -50%); }
+.seat-5 { left: 35%; top: 22%; transform: translate(-50%, -50%); }
+.seat-6 { left: 22%; top: 50%; transform: translate(-50%, -50%); }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
 .seat.folded { opacity: .5; }
@@ -759,9 +751,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
-  position: absolute; left: 28%; bottom: 6%;
-  transform: translateX(-50%);
-  width: auto; max-width: 220px; min-width: 130px;
+  position: absolute; left: 42%; top: 70%;
+  width: 13%; max-width: 220px; min-width: 130px;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 4px 8px 6px; border-radius: 12px;
   background: linear-gradient(180deg, rgba(20,30,60,.78), rgba(6,10,26,.92));
@@ -798,11 +789,13 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   font-size: 9px; color: #cfd6ee; background: rgba(0,0,0,.55);
   padding: 1px 4px; border-radius: 4px; white-space: nowrap;
 }
-.table-hand.th-seat-2 { right: 12%; bottom: 18%; }
-.table-hand.th-seat-3 { right: 12%; top: 18%; }
-.table-hand.th-seat-4 { right: 34%; top: 12%; }
-.table-hand.th-seat-5 { left: 34%;  top: 12%; }
-.table-hand.th-seat-6 { left: 12%;  bottom: 18%; }
+/* non-me hands anchored on the INNER side of each avatar (toward table center) */
+.table-hand { transform: translate(-50%, -50%); }
+.table-hand.th-seat-2 { left: 70%; top: 66%; }
+.table-hand.th-seat-3 { left: 70%; top: 34%; }
+.table-hand.th-seat-4 { left: 60%; top: 30%; }
+.table-hand.th-seat-5 { left: 40%; top: 30%; }
+.table-hand.th-seat-6 { left: 30%; top: 50%; }
 .table-dealer-chip {
   position: absolute; left: 100%; top: 50%; transform: translate(4px, -50%);
   width: 20px; height: 20px; border-radius: 50%;
