@@ -58,15 +58,18 @@
           <div class='table'>
             <div class='table-inner'>
               <div class='table-watermark'>{{ watermark }}</div>
-              <div class='community'>
-                <PokerCard v-for='i in 5' :key='i' :card='community[i - 1] || null' :face='!!community[i - 1]' size='normal' class='board-card' />
+              <div class='corner-deco'>
+                <div class='dealer-chip'>D</div>
+                <span class='red-back deco-back'></span>
               </div>
               <div class='pot-row'>
-                <div class='dealer-chip'>D</div>
                 <div class='pot-info'>
                   <div class='pot-label'>底池</div>
                   <div class='pot-amount'>{{ formatChips(pot) }}</div>
                 </div>
+              </div>
+              <div class='community'>
+                <PokerCard v-for='i in 5' :key='i' :card='community[i - 1] || null' :face='!!community[i - 1]' size='normal' class='board-card' />
               </div>
               <div class='stage-tag'>{{ stageLabel }}</div>
               <div v-if='winners.length' class='winners'>
@@ -97,6 +100,7 @@
                 <circle class='ring-fg' cx='22' cy='22' r='20' :stroke-dasharray='125.66' :stroke-dashoffset='125.66 * (1 - s.timerPct / 100)' />
               </svg>
               <div class='avatar'>{{ initial(s.player.name) }}</div>
+              <div class='gift-badge' aria-hidden='true'>🎁</div>
               <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
             </div>
             <div class='chip-row'>
@@ -121,26 +125,26 @@
             </div>
           </div>
 
-        </div>
-      </div>
-
-      <!-- 桌面上：本人手牌 + 牌型 + 胜率 + 60s倒计时环，居中在桌面下沿 -->
-      <div class='me-panel' :class='{ active: isMyTurn }'>
-        <svg v-if='isMyTurn' class='me-timer-ring' viewBox='0 0 100 100'>
-          <circle class='ring-bg' cx='50' cy='50' r='46' />
-          <circle class='ring-fg' cx='50' cy='50' r='46' :stroke-dasharray='289.03' :stroke-dashoffset='289.03 * (1 - timerPctVal / 100)' />
-          <text class='ring-text' x='50' y='58' text-anchor='middle'>{{ remaining }}</text>
-        </svg>
-        <div class='me-cards'>
-          <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
-          <div v-if='dealerIsMe' class='table-dealer-chip me-dealer'>D</div>
-        </div>
-        <div class='me-rank'>{{ meHandRankText }}</div>
-        <div class='me-win'>
-          <div class='me-win-bar'>
-            <div class='me-win-fill' :style='{ width: winRatePct + pctSuffix }'></div>
+          <!-- 我方手牌 + 牌型 + 胜率 + 倒计时，紧贴席位1头像上方 -->
+          <div class='me-panel' :class='{ active: isMyTurn }'>
+            <svg v-if='isMyTurn' class='me-timer-ring' viewBox='0 0 100 100'>
+              <circle class='ring-bg' cx='50' cy='50' r='46' />
+              <circle class='ring-fg' cx='50' cy='50' r='46' :stroke-dasharray='289.03' :stroke-dashoffset='289.03 * (1 - timerPctVal / 100)' />
+              <text class='ring-text' x='50' y='58' text-anchor='middle'>{{ remaining }}</text>
+            </svg>
+            <div class='me-cards'>
+              <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
+              <div v-if='dealerIsMe' class='table-dealer-chip me-dealer'>D</div>
+            </div>
+            <div class='me-rank'>{{ meHandRankText }}</div>
+            <div class='me-win'>
+              <div class='me-win-bar'>
+                <div class='me-win-fill' :style='{ width: winRatePct + pctSuffix }'></div>
+              </div>
+              <div class='me-win-text'>胜率 {{ winRatePct }}%</div>
+            </div>
           </div>
-          <div class='me-win-text'>胜率 {{ winRatePct }}%</div>
+
         </div>
       </div>
 
@@ -452,6 +456,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   background:
     radial-gradient(120% 60% at 50% 0%, #23305a 0%, #10162a 55%, #060812 100%);
   overflow: hidden;
+  container-type: size;
 }
 .window-scene {
   position: absolute; left: 12%; right: 12%; top: 6%; height: 30%;
@@ -512,11 +517,15 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
-  position: absolute; top: 2%; bottom: 12%; left: 90px; right: 90px;
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(84cqw, 148cqh);
+  aspect-ratio: 2 / 1;
+  max-width: calc(100% - 130px);
 }
 .dealer-top {
-  position: absolute; left: 50%; top: 4%; transform: translate(-50%, -40%);
-  z-index: 5; pointer-events: none;
+  position: absolute; left: 50%; top: 0; transform: translate(-50%, -55%);
+  z-index: 6; pointer-events: none;
 }
 .dealer-avatar {
   width: 78px; height: 92px; position: relative;
@@ -555,8 +564,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 }
 
 .table {
-  position: absolute; left: 6%; right: 6%; top: 8%; bottom: 30%;
-  border-radius: 50%/50%;
+  position: absolute; inset: 0;
+  border-radius: 50% / 50%;
   background: radial-gradient(ellipse at 50% 40%, #204d8a 0%, #123064 45%, #071736 100%);
   border: 6px solid #050914;
   box-shadow:
@@ -565,11 +574,10 @@ async function onBack() { await store.leave(); await navigateTo('/') }
     0 12px 24px rgba(0,0,0,.7);
 }
 .table-inner {
-  position: absolute; inset: 6%;
-  border-radius: 50%/50%;
+  position: absolute; inset: 5%;
+  border-radius: 50% / 50%;
   border: 2px solid rgba(245,197,24,.35);
   box-shadow: inset 0 0 40px rgba(0,0,0,.35);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 .table-watermark {
   position: absolute; left: 0; right: 0; top: 46%; transform: translateY(-50%);
@@ -578,11 +586,13 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   font-family: 'Georgia', serif;
 }
 .community {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: flex; gap: 6px; align-items: center; justify-content: center;
-  margin-top: -8px; z-index: 2;
+  z-index: 2;
 }
 .pot-row {
-  margin-top: 10px; display: flex; align-items: center; gap: 10px; z-index: 2;
+  position: absolute; left: 50%; top: 14%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; z-index: 3;
 }
 .dealer-chip {
   width: 26px; height: 26px; border-radius: 50%;
@@ -595,6 +605,36 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .pot-info { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .pot-label { font-size: 10px; color: #cfd6ee; letter-spacing: 3px; }
 .pot-amount { font-size: 18px; font-weight: 900; color: #f5c518; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+
+/* ---------- 左上角庄位装饰：D 筹码 + 红色牌背 ---------- */
+.corner-deco {
+  position: absolute; left: 8%; top: 12%;
+  display: flex; align-items: center; gap: 6px;
+  z-index: 3; pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+}
+.corner-deco .dealer-chip { width: 28px; height: 28px; font-size: 14px; }
+.corner-deco .deco-back {
+  width: 22px; height: 30px; border-radius: 3px;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.14) 0 3px, transparent 3px 6px),
+    linear-gradient(135deg, #d21f3c, #6a0a1c);
+  border: 1px solid #3a0a12;
+  box-shadow: inset 0 0 4px rgba(255,255,255,.15);
+  transform: rotate(-8deg);
+}
+
+/* ---------- 头像紫色礼物角标 ---------- */
+.gift-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #b98cff, #6a2fcf 65%, #3d1685 100%);
+  border: 2px solid #f5c518;
+  color: #fff; font-size: 11px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,.55);
+  z-index: 5;
+}
 .stage-tag {
   position: absolute; top: 10%; right: 12%;
   font-size: 10px; letter-spacing: 3px; color: #f5c518; opacity: .85;
@@ -613,19 +653,19 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 22%; bottom: 8%;  transform: translateX(-50%); }
-.seat-2 { right: 2%;  bottom: 8%; }
-.seat-3 { right: 2%;  top: 30%; }
-.seat-4 { right: 30%; top: -2%; }
-.seat-5 { left: 30%;  top: -2%; }
-.seat-6 { left: 2%;   bottom: 16%; }
+.seat-1 { left: 28%; bottom: -12%; transform: translateX(-50%); }
+.seat-2 { right: 6%;  bottom: -12%; }
+.seat-3 { right: 6%;  top: -12%; }
+.seat-4 { right: 28%; top: -12%; transform: translateX(50%); }
+.seat-5 { left: 28%;  top: -12%; transform: translateX(-50%); }
+.seat-6 { left: 6%;   bottom: -12%; }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
 .seat.folded { opacity: .5; }
 .seat.bust { opacity: .35; }
 .seat.offline { filter: grayscale(.6); }
 
-.avatar-wrap { position: relative; width: 54px; height: 54px; flex: 0 0 54px; }
+.avatar-wrap { position: relative; width: 54px; height: 54px; flex: 0 0 54px; overflow: visible; }
 .avatar {
   position: absolute; inset: 3px; border-radius: 50%;
   background: linear-gradient(160deg, #3f2a86, #1a1230);
@@ -719,11 +759,11 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
-  position: absolute; left: 50%; top: 88%;
-  transform: translate(-50%, -6px);
-  width: auto; max-width: 260px; min-width: 140px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 6px 10px 8px; border-radius: 14px;
+  position: absolute; left: 28%; bottom: 6%;
+  transform: translateX(-50%);
+  width: auto; max-width: 220px; min-width: 130px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 4px 8px 6px; border-radius: 12px;
   background: linear-gradient(180deg, rgba(20,30,60,.78), rgba(6,10,26,.92));
   border: 1px solid rgba(245,197,24,.5);
   box-shadow: 0 6px 18px rgba(0,0,0,.6);
@@ -758,11 +798,11 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   font-size: 9px; color: #cfd6ee; background: rgba(0,0,0,.55);
   padding: 1px 4px; border-radius: 4px; white-space: nowrap;
 }
-.table-hand.th-seat-2 { right: 8%;  bottom: 14%; }
-.table-hand.th-seat-3 { right: 3%;  top: 40%; }
-.table-hand.th-seat-4 { right: 32%; top: 8%; }
-.table-hand.th-seat-5 { left: 32%;  top: 8%; }
-.table-hand.th-seat-6 { left: 8%;   bottom: 14%; }
+.table-hand.th-seat-2 { right: 12%; bottom: 18%; }
+.table-hand.th-seat-3 { right: 12%; top: 18%; }
+.table-hand.th-seat-4 { right: 34%; top: 12%; }
+.table-hand.th-seat-5 { left: 34%;  top: 12%; }
+.table-hand.th-seat-6 { left: 12%;  bottom: 18%; }
 .table-dealer-chip {
   position: absolute; left: 100%; top: 50%; transform: translate(4px, -50%);
   width: 20px; height: 20px; border-radius: 50%;
