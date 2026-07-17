@@ -1,104 +1,209 @@
 <template>
   <div class="game-page">
-    <button class="icon-btn" title="刷新重连" @click="reconnect">⟳</button>
-    <button class="icon-btn leave-icon" title="退出" @click="leave">✕</button>
+    <!-- ????????? + ?? + ?? D + ??? + HOLD'EM ?? ??? .table ? -->
+    <!-- ??????? -->
+    <aside class="side-rail">
+      <button class="rail-btn back-btn" title="??" @click="onBack">
+        <span class="arrow">?</span>
+      </button>
+      <div class="rail-time">{{ clockText }}</div>
+      <button class="rail-btn chat-btn" title="??" @click="chatOpen = !chatOpen">
+        <span class="ico">??</span>
+      </button>
+      <button class="rail-btn target-btn" title="??">
+        <span class="ico-target"></span>
+      </button>
+      <button class="rail-btn buff-btn" title="BUFF">
+        <span class="buff-line1">BUFF</span>
+        <span class="buff-line2">5% ? 1X</span>
+      </button>
+    </aside>
 
-    <div class="log-panel">
-      <button class="log-toggle" @click="logOpen = !logOpen">{{ logOpen ? '▾ 日志' : '▸ 日志' }}</button>
+    <!-- ?????? -->
+    <section class="log-rail" :class="{ open: logOpen }">
+      <button class="log-toggle" @click="logOpen = !logOpen">{{ logOpen ? '?' : '??' }}</button>
       <div v-if="logOpen" class="log-list">
-        <div v-for="(l, i) in logList" :key="i" class="log-item">· {{ l }}</div>
-        <div v-if="!logList.length" class="log-item small">暂无记录</div>
+        <div v-for="(l, i) in logList" :key="i" class="log-item">? {{ l }}</div>
+        <div v-if="!logList.length" class="log-item small">????</div>
       </div>
-    </div>
+    </section>
 
-    <div v-if="!room || !room.game" class="loading">加载中…</div>
+    <div v-if="!room || !room.game" class="loading">????</div>
 
     <template v-else>
-      <div class="table-area">
-        <div class="table">
-          <div class="dealer">
-            <div class="dealer-avatar">🎩</div>
-            <div class="dealer-label">发牌员</div>
-          </div>
-          <div class="community">
-            <PokerCard v-for="i in 5" :key="i" :card="community[i - 1] || null" :face="true" size="normal" />
-          </div>
-          <div class="pot">
-            <span class="pot-label">底池</span>
-            <span class="chip lg" :class="chipClass(pot)">{{ pot }}</span>
-          </div>
-          <div class="stage">{{ stageLabel }}</div>
-          <div v-if="winners.length" class="winners">
-            <div v-for="w in winners" :key="w.playerId" class="winner-line">
-              <strong>{{ playerName(w.playerId) }}</strong> +{{ w.amount }}
-              <span v-if="w.hand" class="small">（{{ w.hand }}）</span>
-            </div>
-          </div>
+      <!-- ???????? + ???? -->
+      <div class="lounge">
+        <!-- ????? -->
+        <div class="window-scene">
+          <div class="cityscape"></div>
+          <div class="skyline"></div>
+          <div class="curtain left"></div>
+          <div class="curtain right"></div>
         </div>
+        <!-- ??/??/?? ?? -->
+        <div class="lounge-sofa left"></div>
+        <div class="lounge-sofa right"></div>
+        <div class="lounge-floor"></div>
 
-        <div
-          v-for="s in seats"
-          :key="s.player.id"
-          class="seat"
-          :class="['seat-' + s.seatNo, { active: s.active, folded: s.player.folded, bust: s.player.bust, me: s.isMe }]"
-        >
-          <div v-if="!s.isMe" class="seat-cards">
-            <PokerCard v-for="(c, ci) in otherHand(s.player)" :key="ci" :card="c" :face="revealStage" size="mini" />
-          </div>
-          <div class="seat-body">
-            <div class="avatar-wrap" :class="{ active: s.active }">
-              <div v-if="s.active" class="timer-ring" :style="{ '--p': s.timerPct }">
-                <div class="avatar">{{ initial(s.player.name) }}</div>
+        <div class="table-wrap">
+          <!-- ?????????? -->
+          <div class="dealer-top">
+            <div class="dealer-avatar" aria-label="dealer">
+              <div class="dealer-hair"></div>
+              <div class="dealer-face">
+                <div class="eye left"></div>
+                <div class="eye right"></div>
+                <div class="mouth"></div>
               </div>
-              <div v-else class="avatar">{{ initial(s.player.name) }}</div>
+              <div class="dealer-body"></div>
             </div>
-            <div class="seat-meta">
-              <div class="seat-name">{{ s.player.name }}<span v-if="s.isMe" class="tag">我</span></div>
-              <div class="seat-tags">
-                <span v-if="s.dealer" class="tag dealer">D</span>
-                <span v-if="s.sb" class="tag sb">SB</span>
-                <span v-if="s.bb" class="tag bb">BB</span>
-                <span v-if="s.player.isBot" class="tag bot">Bot</span>
-                <span v-if="s.player.folded" class="tag fold">弃牌</span>
-                <span v-if="s.player.allIn" class="tag allin">全下</span>
-                <span v-if="s.player.bust" class="tag fold">出局</span>
-                <span v-if="s.player.offline" class="tag offline">离线</span>
-                <span v-if="s.active" class="tag think">{{ s.remaining }}s</span>
+          </div>
+
+          <div class="table">
+            <div class="table-inner">
+              <div class="table-watermark">HOLD'EM</div>
+              <!-- ???? -->
+              <div class="community">
+                <PokerCard
+                  v-for="i in 5"
+                  :key="i"
+                  :card="community[i - 1] || null"
+                  :face="!!community[i - 1]"
+                  size="normal"
+                  class="board-card"
+                />
               </div>
-              <div class="seat-chips"><span class="chip" :class="chipClass(s.player.chips)">{{ s.player.chips }}</span></div>
+              <!-- ?? + ?? D -->
+              <div class="pot-row">
+                <div class="dealer-chip">D</div>
+                <div class="pot-info">
+                  <div class="pot-label">??</div>
+                  <div class="pot-amount">{{ formatChips(pot) }}</div>
+                </div>
+              </div>
+              <div class="stage-tag">{{ stageLabel }}</div>
+              <div v-if="winners.length" class="winners">
+                <div v-for="w in winners" :key="w.playerId" class="winner-line">
+                  <strong>{{ playerName(w.playerId) }}</strong>
+                  <span>+{{ formatChips(w.amount) }}</span>
+                  <span v-if="w.hand" class="small">?{{ w.hand }}?</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div v-if="s.player.bet > 0" class="seat-bet">
-            <span class="chip" :class="chipClass(s.player.bet)">{{ s.player.bet }}</span>
+
+          <!-- 6 ????? -->
+          <div
+            v-for="s in seats"
+            :key="s.player.id"
+            class="seat"
+            :class="[
+              'seat-' + s.seatNo,
+              { active: s.active, folded: s.player.folded, bust: s.player.bust, me: s.isMe, offline: s.player.offline }
+            ]"
+          >
+            <!-- ??????? -->
+            <div v-if="!s.isMe" class="seat-cards">
+              <PokerCard
+                v-for="(c, ci) in otherHand(s.player)"
+                :key="ci"
+                :card="c"
+                :face="revealStage && !!c"
+                size="mini"
+              />
+              <div v-if="!revealStage && s.player.hand && s.player.hand.length" class="hand-mask">
+                ??????
+              </div>
+            </div>
+
+            <div class="avatar-wrap" :class="{ turn: s.active }">
+              <svg v-if="s.active" class="timer-ring" viewBox="0 0 44 44">
+                <circle class="ring-bg" cx="22" cy="22" r="20" />
+                <circle
+                  class="ring-fg"
+                  cx="22"
+                  cy="22"
+                  r="20"
+                  :stroke-dasharray="125.66"
+                  :stroke-dashoffset="125.66 * (1 - s.timerPct / 100)"
+                />
+              </svg>
+              <div class="avatar">{{ initial(s.player.name) }}</div>
+              <div class="gift-icon" title="??">??</div>
+              <div v-if="s.dealer" class="dealer-badge">D</div>
+              <div v-if="s.active" class="timer-num">{{ s.remaining }}</div>
+            </div>
+
+            <div class="seat-name-row">
+              <span class="seat-name">{{ s.player.name }}</span>
+              <span v-if="s.player.isBot" class="tag bot">Bot</span>
+            </div>
+
+            <div class="chip-row">
+              <span class="coin">?</span>
+              <span class="chip-val">{{ formatChips(s.player.chips) }}</span>
+            </div>
+
+            <div class="seat-tags">
+              <span v-if="s.sb" class="tag sb">SB</span>
+              <span v-if="s.bb" class="tag bb">BB</span>
+              <span v-if="s.player.folded" class="tag fold">??</span>
+              <span v-if="s.player.allIn" class="tag allin">??</span>
+              <span v-if="s.player.bust" class="tag fold">??</span>
+            </div>
+
+            <!-- ?????? -->
+            <div v-if="s.player.bet > 0" class="seat-bet">
+              <span class="coin">?</span>
+              <span>{{ formatChips(s.player.bet) }}</span>
+            </div>
+          </div>
+
+          <!-- ?????1??????+???+????? -->
+          <div class="me-panel" :class="{ active: isMyTurn }">
+            <div class="me-cards">
+              <PokerCard
+                v-for="(c, ci) in myHand"
+                :key="ci"
+                :card="c"
+                :face="!!c"
+                size="big"
+              />
+            </div>
+            <div class="me-rank">{{ me?.handRank || handTypeHint || '?' }}</div>
+            <div class="me-win">
+              <div class="me-win-bar">
+                <div class="me-win-fill" :style="{ width: winRatePct + '%' }"></div>
+              </div>
+              <div class="me-win-text">?? {{ winRatePct }}%</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div v-if="me" class="me-hand-center" :class="{ active: isMyTurn }">
-        <div class="me-cards">
-          <PokerCard v-for="(c, ci) in myHand" :key="ci" :card="c" :face="true" size="big" />
-        </div>
-        <div v-if="me?.handRank" class="me-hand-rank">{{ me.handRank }}</div>
-        <div v-else class="me-hand-rank">—</div>
-      </div>
-
-      <div class="bottom-zone">
-        <div class="action-area">
-          <template v-if="isMyTurn && room.game.stage !== 'ended'">
-            <button class="btn-fold" @click="doAction('fold')">弃牌</button>
-            <button class="btn-call" @click="doAction(canCheck ? 'check' : 'call')">
-              {{ canCheck ? '过牌' : `跟注 ${toCall}` }}
-            </button>
-            <div class="raise-group">
-              <input v-model.number="raiseAmount" type="number" :min="minRaiseTo" :max="(me?.chips || 0) + (me?.bet || 0)" :placeholder="`加注到 ${minRaiseTo}`" />
-              <button class="btn-raise" @click="doRaise">加注</button>
-            </div>
-            <button class="btn-allin" @click="doAction('allin')">全下 ({{ me?.chips || 0 }})</button>
-          </template>
-          <div v-else-if="room.game.stage !== 'ended'" class="wait-text">等待 {{ actionPlayerName }} 行动…</div>
-          <div v-else class="wait-text">本局结束</div>
-        </div>
-      </div>
+      <!-- ???? 4 ?? -->
+      <footer class="action-bar">
+        <button
+          class="act-btn"
+          :disabled="!isMyTurn || game.stage === 'ended'"
+          @click="doAction('fold')"
+        >??</button>
+        <button
+          class="act-btn"
+          :disabled="!isMyTurn || game.stage === 'ended'"
+          @click="doAction(canCheck ? 'check' : 'fold')"
+        >{{ canCheck ? '??' : '??/??' }}</button>
+        <button
+          class="act-btn"
+          :disabled="!isMyTurn || !canCheck || game.stage === 'ended'"
+          @click="doAction('check')"
+        >??</button>
+        <button
+          class="act-btn primary"
+          :disabled="!isMyTurn || game.stage === 'ended'"
+          @click="doAction(canCheck ? 'check' : 'call')"
+        >{{ canCheck ? '????' : `? ${formatChips(toCall)}` }}</button>
+      </footer>
     </template>
 
     <p v-if="err" class="err">{{ err }}</p>
@@ -110,22 +215,27 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useIntervalFn } from '@vueuse/core'
 import { usePokerStore } from '~/stores/poker'
 
+/**
+ * ?????????? CHANGE_REQUEST ???? 6 ??????????????? 4 ???
+ * ?? 1 ????????????? KV ?? seat index ?????????????? 2?6?
+ */
 const route = useRoute()
 const roomId = route.params.id as string
 const store = usePokerStore()
 
-const room = computed(() => store.room)
+const room = computed<any>(() => store.room)
 const me = computed<any>(() => store.me)
 const err = ref('')
-const raiseAmount = ref<number | null>(null)
 const now = ref(Date.now())
 const logOpen = ref(false)
+const chatOpen = ref(false)
 
-const CLOCKWISE = [5, 4, 3, 2, 1, 6]
+// ??? 1..6 ?????????1 ??, 2 ??, 3 ??, 4 ??(????), 5 ??(????), 6 ??
+// ????: 0=?? -> ??1?1..5 ??? -> ?? 2,3,4,5,6
+const OFFSET_TO_SEAT = [1, 2, 3, 4, 5, 6]
 
-const game = computed(() => room.value?.game)
-const players = computed(() => room.value?.players || [])
-const myIndex = computed(() => players.value.findIndex((p: any) => p.id === store.playerId))
+const game = computed<any>(() => room.value?.game)
+const players = computed<any[]>(() => room.value?.players || [])
 
 const revealStage = computed(() => {
   const s = game.value?.stage
@@ -139,14 +249,14 @@ const stageLabel = computed(() => {
   return map[game.value?.stage as string] || ''
 })
 
-const community = computed(() => game.value?.community || [])
+const community = computed<any[]>(() => game.value?.community || [])
 const pot = computed(() => game.value?.pot || 0)
-const winners = computed(() => game.value?.winners || [])
-const logList = computed(() => (game.value?.log || []).slice().reverse())
+const winners = computed<any[]>(() => game.value?.winners || [])
+const logList = computed<string[]>(() => (game.value?.log || []).slice().reverse())
 
+const dealerIdx = computed<number>(() => game.value?.dealerIdx ?? -1)
+const actionIdx = computed<number>(() => game.value?.actionIdx ?? -1)
 const count = computed(() => players.value.length || 1)
-const dealerIdx = computed(() => game.value?.dealerIdx ?? -1)
-const actionIdx = computed(() => game.value?.actionIdx ?? -1)
 const sbIdx = computed(() => {
   const d = dealerIdx.value
   if (d < 0) return -1
@@ -164,6 +274,11 @@ const remaining = computed(() => {
 })
 const timerPctVal = computed(() => Math.max(0, Math.min(100, (remaining.value / 60) * 100)))
 
+const myKvSeat = computed<number>(() => {
+  const meP = players.value.find(p => p.id === store.playerId)
+  return meP?.seat ?? -1
+})
+
 const isMyTurn = computed(() => {
   const g = game.value
   if (!g || g.stage === 'ended') return false
@@ -171,23 +286,25 @@ const isMyTurn = computed(() => {
 })
 const toCall = computed(() => Math.max(0, (game.value?.currentBet || 0) - (me.value?.bet || 0)))
 const canCheck = computed(() => toCall.value === 0)
-const minRaiseTo = computed(() => (game.value?.currentBet || 0) + (game.value?.minRaise || 20))
-const actionPlayerName = computed(() => players.value[actionIdx.value]?.name || '')
-const myTimerPct = computed(() => (isMyTurn.value ? timerPctVal.value : 0))
 
+/**
+ * 6 ?????????????? 1??????? KV ?? seat index?
+ * ????? (kvSeat - myKvSeat) mod maxSeats ??????????? 2..6?
+ */
 const seats = computed(() => {
   const ps = players.value
-  const n = ps.length
-  if (!n) return []
-  const mi = myIndex.value >= 0 ? myIndex.value : 0
+  if (!ps.length || myKvSeat.value < 0) return []
+  const seatSlots = Math.max(6, ps.length)
   const out: any[] = []
-  for (let i = 0; i < n; i++) {
-    const offset = (((i - mi) % n) + n) % n
-    const seatNo = CLOCKWISE[offset % 6]
+  for (let i = 0; i < ps.length; i++) {
     const p = ps[i]
+    const offset = (((p.seat - myKvSeat.value) % seatSlots) + seatSlots) % seatSlots
+    const seatNo = OFFSET_TO_SEAT[Math.min(offset, 5)]
     const active = i === actionIdx.value && game.value?.stage !== 'ended'
     out.push({
-      player: p, seatNo, idx: i,
+      player: p,
+      seatNo,
+      idx: i,
       isMe: p.id === store.playerId,
       active,
       dealer: i === dealerIdx.value,
@@ -197,18 +314,47 @@ const seats = computed(() => {
       timerPct: active ? timerPctVal.value : 0
     })
   }
-  out.sort((a, b) => a.seatNo - b.seatNo)
   return out
 })
 
-const myHand = computed(() => {
+const myHand = computed<any[]>(() => {
   const h = me.value?.hand
-  return h && h.length ? h : [null, null]
+  if (h && h.length) return h
+  return [null, null]
 })
 function otherHand(p: any) {
-  if (revealStage.value && p?.hand?.length) return p.hand
+  if (revealStage.value && p?.hand?.length && p.hand[0]) return p.hand
   return [null, null]
 }
+
+/** ???????????????????????????? */
+const handTypeHint = computed(() => {
+  const h = myHand.value
+  if (!h[0] || !h[1]) return ''
+  const r1 = h[0].rank, r2 = h[1].rank
+  const s1 = h[0].suit, s2 = h[1].suit
+  if (r1 === r2) return '??'
+  if (s1 === s2) return '???'
+  return '??'
+})
+
+/** ???????????????????????? */
+const winRatePct = computed(() => {
+  const h = myHand.value
+  if (!h[0] || !h[1]) return 0
+  const r1 = h[0].rank, r2 = h[1].rank
+  const s1 = h[0].suit, s2 = h[1].suit
+  let base = 30
+  if (r1 === r2) base = 55 + (r1 - 2) * 2
+  else {
+    base += (Math.max(r1, r2) - 7) * 3
+    if (s1 === s2) base += 6
+    if (Math.abs(r1 - r2) === 1) base += 4
+  }
+  const board = community.value.filter(Boolean).length
+  if (board >= 3 && me.value?.handRank) base += 10
+  return Math.max(3, Math.min(96, Math.round(base)))
+})
 
 function playerName(id: string) {
   return players.value.find((p: any) => p.id === id)?.name || '?'
@@ -216,15 +362,20 @@ function playerName(id: string) {
 function initial(name: string) {
   return name ? name.trim().charAt(0).toUpperCase() : '?'
 }
-function chipClass(v: any) {
+function formatChips(v: any) {
   const x = Number(v) || 0
-  if (x >= 1000) return 'black'
-  if (x >= 500) return 'purple'
-  if (x >= 200) return 'orange'
-  if (x >= 100) return 'green'
-  if (x >= 50) return 'blue'
-  return ''
+  if (x >= 1_000_000) return (x / 1_000_000).toFixed(x % 1_000_000 === 0 ? 0 : 1) + 'M'
+  if (x >= 10_000) return (x / 1_000_000).toFixed(2).replace(/0+$/, '').replace(/\.$/, '') + 'M'
+  return String(x)
 }
+
+/** ????????? */
+const clockText = computed(() => {
+  const d = new Date(now.value)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
+})
 
 onMounted(async () => {
   store.loadClientState()
@@ -258,249 +409,408 @@ async function doAction(a: string, amount?: number) {
   try { await store.action(a, amount) }
   catch (e: any) { err.value = e?.statusMessage || 'action failed' }
 }
-async function doRaise() {
-  const amt = Number(raiseAmount.value)
-  if (!amt || amt < minRaiseTo.value) { err.value = `加注最小 ${minRaiseTo.value}`; return }
-  await doAction('raise', amt)
-  raiseAmount.value = null
-}
-async function reconnect() { err.value = ''; await refresh() }
-async function leave() { await store.leave(); await navigateTo('/') }
+
+async function onBack() { await store.leave(); await navigateTo('/') }
 </script>
 
 <style scoped>
 .game-page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  background: radial-gradient(ellipse at center, #0a2418 0%, var(--bg2) 70%);
-}
-@media (orientation: portrait) {
-  .game-page {
-    width: 100dvh;
-    height: 100dvw;
-    transform: rotate(90deg) translateY(-100dvw);
-    transform-origin: top left;
-  }
-}
-@media (orientation: landscape) {
-  .game-page {
-    width: 100dvw;
-    height: 100dvh;
-    transform: none;
-  }
-}
-
-.icon-btn {
-  position: absolute;
-  top: 8px;
-  z-index: 30;
-  width: 34px; height: 34px;
-  min-height: 34px;
-  padding: 0;
-  border-radius: 50%;
-  background: rgba(0,0,0,.4);
+  position: fixed; inset: 0; overflow: hidden;
+  display: flex; flex-direction: column;
   color: var(--text);
-  font-size: 16px;
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--panel-border);
-}
-.icon-btn:first-of-type { left: 8px; }
-.leave-icon { left: 48px; }
-
-.loading {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--muted); font-size: 16px;
+  background: #0a0d14;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
-.log-panel { position: absolute; top: 8px; right: 8px; z-index: 30; max-width: 240px; }
+/* ---------- ??????? ---------- */
+.side-rail {
+  position: absolute; left: 6px; top: 6px; bottom: 96px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 20; padding: 4px 2px;
+}
+.rail-btn {
+  width: 40px; height: 40px; border-radius: 10px; border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.15);
+  cursor: pointer; padding: 0; line-height: 1;
+}
+.rail-btn .arrow { font-size: 18px; }
+.rail-btn .ico { font-size: 18px; }
+.back-btn, .chat-btn {
+  background: linear-gradient(180deg, #7a4bd6, #4b28a3);
+}
+.target-btn {
+  background: radial-gradient(circle at 50% 50%,
+    #fff 0 22%, #e53935 22% 40%, #fff 40% 55%, #e53935 55% 72%, #fff 72% 82%, #e53935 82% 100%);
+  border-radius: 50%;
+  position: relative;
+}
+.target-btn .ico-target { width: 6px; height: 6px; border-radius: 50%; background: #111; box-shadow: 0 0 0 2px #fff; }
+.buff-btn {
+  background: linear-gradient(180deg, #ff9a2f, #d15a00);
+  flex-direction: column; gap: 0; font-weight: 800;
+}
+.buff-btn .buff-line1 { font-size: 10px; letter-spacing: 1px; }
+.buff-btn .buff-line2 { font-size: 9px; opacity: .95; }
+.rail-time {
+  color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  background: rgba(0,0,0,.35); padding: 2px 6px; border-radius: 6px;
+}
+
+/* ---------- ???? ---------- */
+.log-rail {
+  position: absolute; right: 4px; top: 8px; bottom: 96px; width: 22px;
+  display: flex; flex-direction: column; align-items: flex-end; z-index: 15;
+}
+.log-rail.open { width: 46vw; max-width: 260px; }
 .log-toggle {
-  width: 100%; min-height: 32px; padding: 4px 10px; font-size: 12px;
-  background: rgba(0,0,0,.45); color: var(--text); border: 1px solid var(--panel-border);
+  writing-mode: vertical-rl; background: rgba(75,40,163,.75); color: #fff;
+  border: none; padding: 8px 4px; border-radius: 8px 0 0 8px;
+  font-size: 12px; letter-spacing: 2px;
 }
 .log-list {
-  margin-top: 6px; max-height: 200px; overflow-y: auto;
-  background: rgba(0,0,0,.55); border: 1px solid var(--panel-border);
-  border-radius: 8px; padding: 6px 8px; font-size: 11px; line-height: 1.5;
+  flex: 1; overflow-y: auto; padding: 6px 8px; margin-top: 6px;
+  background: rgba(10,14,28,.85); border: 1px solid rgba(120,90,220,.4);
+  border-radius: 8px; width: 100%;
 }
-.log-item { color: var(--text); }
+.log-item { font-size: 11px; color: #cfd6ee; padding: 2px 0; line-height: 1.35; }
+.log-item.small { color: #7a819a; }
 
-.table-area { position: relative; flex: 1; min-height: 0; }
+/* ---------- ???? ---------- */
+.lounge {
+  position: relative; flex: 1 1 auto;
+  background:
+    radial-gradient(120% 60% at 50% 0%, #23305a 0%, #10162a 55%, #060812 100%);
+  overflow: hidden;
+}
+.window-scene {
+  position: absolute; left: 12%; right: 12%; top: 6%; height: 30%;
+  background: linear-gradient(180deg, #06172e 0%, #0a2044 55%, #142a55 100%);
+  border: 3px solid #1a1010; border-radius: 6px;
+  box-shadow: inset 0 0 40px rgba(0,0,0,.7), 0 6px 24px rgba(0,0,0,.6);
+  overflow: hidden;
+}
+.window-scene::before, .window-scene::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 3px; background: #1a1010;
+}
+.window-scene::before { left: 50%; }
+.cityscape {
+  position: absolute; inset: 30% 0 20% 0;
+  background:
+    linear-gradient(90deg, transparent 0 4%, #0e1a30 4% 8%, transparent 8% 12%,
+      #16223c 12% 20%, transparent 20% 24%, #0e1a30 24% 32%, transparent 32% 38%,
+      #1a2846 38% 46%, transparent 46% 52%, #0e1a30 52% 60%, transparent 60% 66%,
+      #16223c 66% 74%, transparent 74% 80%, #0e1a30 80% 88%, transparent 88% 96%);
+  filter: brightness(1.1);
+}
+.skyline {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 40%, #fce39a 60%, transparent 61%),
+    radial-gradient(1px 1px at 22% 55%, #fff7c2 60%, transparent 61%),
+    radial-gradient(1px 1px at 34% 30%, #ffd97a 60%, transparent 61%),
+    radial-gradient(1px 1px at 46% 60%, #ffe89a 60%, transparent 61%),
+    radial-gradient(1px 1px at 58% 42%, #fce39a 60%, transparent 61%),
+    radial-gradient(1px 1px at 70% 55%, #fff7c2 60%, transparent 61%),
+    radial-gradient(1px 1px at 82% 34%, #ffd97a 60%, transparent 61%),
+    radial-gradient(1px 1px at 90% 62%, #ffe89a 60%, transparent 61%);
+  opacity: .9;
+}
+.curtain {
+  position: absolute; top: 0; bottom: 0; width: 12%;
+  background:
+    repeating-linear-gradient(90deg, #0b1d3a 0 6px, #163363 6px 12px, #0b1d3a 12px 18px);
+  box-shadow: inset 0 0 30px rgba(0,0,0,.6);
+}
+.curtain.left { left: 0; }
+.curtain.right { right: 0; }
+.lounge-sofa {
+  position: absolute; bottom: 20%; width: 22%; height: 20%;
+  background: linear-gradient(180deg, #6a2828 0%, #3d1414 100%);
+  border-radius: 20px 20px 8px 8px;
+  box-shadow: inset 0 -8px 0 rgba(0,0,0,.35), 0 10px 20px rgba(0,0,0,.5);
+  opacity: .8;
+}
+.lounge-sofa.left { left: 0; }
+.lounge-sofa.right { right: 0; }
+.lounge-floor {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 20%;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.75)),
+    repeating-linear-gradient(0deg, #1a0d0a 0 12px, #0e0705 12px 24px);
+}
+
+/* ---------- ?? ---------- */
+.table-wrap {
+  position: absolute; inset: 6% 6% 4% 6%;
+  display: block;
+}
+.dealer-top {
+  position: absolute; left: 50%; top: 4%; transform: translate(-50%, -40%);
+  z-index: 5; pointer-events: none;
+}
+.dealer-avatar {
+  width: 78px; height: 92px; position: relative;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,.55));
+}
+.dealer-hair {
+  position: absolute; left: 12px; right: 12px; top: 0; height: 44px;
+  background: linear-gradient(180deg, #2a1a11, #0d0605);
+  border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+}
+.dealer-face {
+  position: absolute; left: 18px; right: 18px; top: 10px; height: 40px;
+  background: linear-gradient(180deg, #fbdcc0, #f0b790);
+  border-radius: 50%;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,.08);
+}
+.dealer-face .eye {
+  position: absolute; top: 18px; width: 4px; height: 4px; border-radius: 50%;
+  background: #1a0a04;
+}
+.dealer-face .eye.left { left: 10px; }
+.dealer-face .eye.right { right: 10px; }
+.dealer-face .mouth {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+  width: 10px; height: 4px; border-radius: 0 0 8px 8px; background: #b6314c;
+}
+.dealer-body {
+  position: absolute; left: 6px; right: 6px; bottom: 0; height: 42px;
+  background: linear-gradient(180deg, #1a1a1a, #050505);
+  border-radius: 50% 50% 8px 8px / 55% 55% 8px 8px;
+  border-top: 3px solid #d92626;
+}
+.dealer-body::before {
+  content: ""; position: absolute; left: 50%; top: 4px; transform: translateX(-50%);
+  width: 6px; height: 12px; background: #f5c518; border-radius: 3px;
+}
+
 .table {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  width: 85%; height: 80%;
-  border-radius: 50% / 50%;
-  background: radial-gradient(ellipse at center, var(--felt-light) 0%, var(--felt) 55%, var(--felt-dark) 100%);
-  border: 12px solid var(--rail);
-  box-shadow: 0 0 0 4px var(--gold), 0 0 0 6px rgba(245,197,24,.35), inset 0 0 80px rgba(0,0,0,.55), 0 14px 34px rgba(0,0,0,.6);
+  position: absolute; left: 6%; right: 6%; top: 8%; bottom: 30%;
+  border-radius: 50%/50%;
+  background: radial-gradient(ellipse at 50% 40%, #204d8a 0%, #123064 45%, #071736 100%);
+  border: 6px solid #050914;
+  box-shadow:
+    inset 0 0 0 4px #1c2b52,
+    inset 0 0 60px rgba(0,0,0,.65),
+    0 12px 24px rgba(0,0,0,.7);
 }
-.community { position: absolute; left: 50%; top: 26%; transform: translateX(-50%); display: flex; gap: 8px; }
-.pot {
-  position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%);
-  display: flex; align-items: center; gap: 8px;
-  font-size: 20px; font-weight: 800; color: var(--gold); text-shadow: 0 1px 3px rgba(0,0,0,.6);
+.table-inner {
+  position: absolute; inset: 6%;
+  border-radius: 50%/50%;
+  border: 2px solid rgba(245,197,24,.35);
+  box-shadow: inset 0 0 40px rgba(0,0,0,.35);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.pot-label { font-size: 12px; color: var(--muted); font-weight: 600; }
-.stage { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); font-size: 12px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
-.winners {
-  position: absolute; left: 50%; top: 80%; transform: translateX(-50%); text-align: center;
-  background: rgba(0,0,0,.5); border: 1px solid var(--gold); border-radius: 8px; padding: 4px 10px; font-size: 12px;
+.table-watermark {
+  position: absolute; left: 0; right: 0; top: 46%; transform: translateY(-50%);
+  text-align: center; color: rgba(180,200,255,.10);
+  font-size: 42px; font-weight: 900; letter-spacing: 12px; pointer-events: none;
+  font-family: "Georgia", serif;
 }
-.winner-line { white-space: nowrap; }
-
-.seat { position: absolute; width: 108px; display: flex; flex-direction: column; align-items: center; gap: 3px; z-index: 5; }
-.seat-cards { display: flex; gap: 3px; }
-.seat-body { display: flex; align-items: center; gap: 6px; }
-.avatar-wrap { position: relative; }
-.timer-ring {
-  width: 42px; height: 42px; border-radius: 50%; padding: 3px;
-  background: conic-gradient(var(--gold) calc(var(--p) * 1%), rgba(255,255,255,.1) 0);
+.community {
+  display: flex; gap: 6px; align-items: center; justify-content: center;
+  margin-top: -8px; z-index: 2;
+}
+.pot-row {
+  margin-top: 10px; display: flex; align-items: center; gap: 10px; z-index: 2;
+}
+.dealer-chip {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #d0d0d0 55%, #8a8a8a 100%);
+  color: #1a1a1a; font-weight: 900; font-size: 13px;
   display: flex; align-items: center; justify-content: center;
+  border: 2px solid #f5c518;
+  box-shadow: 0 3px 6px rgba(0,0,0,.5);
+}
+.pot-info { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.pot-label { font-size: 10px; color: #cfd6ee; letter-spacing: 3px; }
+.pot-amount { font-size: 18px; font-weight: 900; color: #f5c518; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.stage-tag {
+  position: absolute; top: 10%; right: 12%;
+  font-size: 10px; letter-spacing: 3px; color: #f5c518; opacity: .85;
+}
+.winners {
+  position: absolute; left: 8%; right: 8%; bottom: 10%;
+  text-align: center; font-size: 12px; color: #f5c518;
+}
+.winner-line { padding: 1px 0; }
+.winner-line .small { color: #cfd6ee; }
+
+/* ---------- ????? 6 ?? ---------- */
+.seat {
+  position: absolute; width: 22%; max-width: 96px; min-width: 74px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: #eef1fa;
+  z-index: 3;
+}
+.seat-1 { left: 22%; bottom: 22%; transform: translateX(-50%); }
+.seat-2 { right: 6%;  bottom: 24%; }
+.seat-3 { right: 2%;  top: 24%; }
+.seat-4 { right: 30%; top: -1%; }
+.seat-5 { left: 30%;  top: -1%; }
+.seat-6 { left: 6%;   bottom: 24%; }
+
+.seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
+.seat.folded { opacity: .5; }
+.seat.bust { opacity: .35; }
+.seat.offline { filter: grayscale(.6); }
+
+.avatar-wrap {
+  position: relative; width: 54px; height: 54px;
 }
 .avatar {
-  width: 100%; height: 100%; border-radius: 50%;
-  background: linear-gradient(135deg, #334155, #1e293b);
+  position: absolute; inset: 3px; border-radius: 50%;
+  background: linear-gradient(160deg, #3f2a86, #1a1230);
+  border: 2px solid #f5c518;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; color: #fff; font-size: 15px; border: 2px solid rgba(255,255,255,.15);
+  color: #fff; font-weight: 800; font-size: 18px;
+  box-shadow: 0 3px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2);
 }
-.seat-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.seat-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 64px; }
-.seat-tags { display: flex; flex-wrap: wrap; gap: 2px; }
-.seat-tags .tag { margin-left: 0; }
-.seat-chips { display: flex; }
-.seat-bet { position: absolute; z-index: 6; }
-.seat-1 { top: 4%;  left: 18%; }
-.seat-2 { top: 4%;  right: 18%; }
-.seat-3 { top: 42%; right: 2%; }
-.seat-4 { bottom: 22%; right: 22%; }
-.seat-5 { bottom: 22%; left: 22%; }
-.seat-6 { top: 42%; left: 2%; }
-.seat-1 .seat-bet, .seat-6 .seat-bet, .seat-5 .seat-bet { right: -6px; top: 46%; }
-.seat-2 .seat-bet, .seat-3 .seat-bet, .seat-4 .seat-bet { left: -6px; top: 46%; }
-
-.dealer {
-  position: absolute; top: -2%; left: 50%; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  z-index: 4; pointer-events: none;
-}
-.dealer-avatar {
-  width: 46px; height: 46px; border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #2a2f3a, #0f1218);
-  border: 2px solid var(--gold);
-  box-shadow: 0 0 0 2px rgba(245,197,24,.3), 0 4px 10px rgba(0,0,0,.5);
+.seat.me .avatar { border-color: #4dd0e1; }
+.gift-icon {
+  position: absolute; right: -6px; top: -4px;
+  width: 20px; height: 20px; border-radius: 6px;
+  background: linear-gradient(160deg, #a06bff, #5b2ecc);
+  border: 1px solid #d3b8ff;
+  color: #fff; font-size: 11px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.5);
 }
-.dealer-label {
-  font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 2px;
-  text-shadow: 0 1px 2px rgba(0,0,0,.7);
+.dealer-badge {
+  position: absolute; left: -8px; bottom: -4px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #b0b0b0 60%, #6a6a6a 100%);
+  color: #1a1a1a; font-weight: 900; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #f5c518;
 }
-.seat.active { background: rgba(245,197,24,.08); border-radius: 12px; padding: 4px; animation: seatPulse 1.2s infinite; }
-.seat.folded { opacity: 0.45; }
-.seat.bust { opacity: 0.3; }
+.timer-ring {
+  position: absolute; inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px);
+  transform: rotate(-90deg);
+}
+.timer-ring .ring-bg {
+  fill: none; stroke: rgba(255,255,255,.15); stroke-width: 3;
+}
+.timer-ring .ring-fg {
+  fill: none; stroke: #f5c518; stroke-width: 3; stroke-linecap: round;
+  transition: stroke-dashoffset .4s linear;
+}
+.timer-num {
+  position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%);
+  font-size: 10px; font-weight: 800; color: #f5c518;
+  background: rgba(0,0,0,.55); padding: 1px 5px; border-radius: 8px;
+}
 
-.bottom-zone {
-  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 4px 10px calc(6px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, rgba(0,0,0,.55), transparent);
+.seat-name-row { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.seat-name { font-size: 12px; font-weight: 700; max-width: 78px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chip-row {
+  display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px;
+  background: rgba(0,0,0,.55); border-radius: 10px;
+  border: 1px solid rgba(245,197,24,.4);
+  font-size: 12px; color: #f5c518; font-weight: 800;
 }
-.me-seat { display: flex; align-items: center; gap: 12px; padding: 2px 10px; border-radius: 12px; }
-.me-seat.active { animation: seatPulse 1.2s infinite; }
+.chip-row .coin { color: #ffe680; font-size: 12px; }
+
+.seat-tags { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; justify-content: center; }
+.tag {
+  font-size: 9px; padding: 1px 4px; border-radius: 6px; background: #2a3350; color: #cfd6ee;
+  border: 1px solid #3d4a75;
+}
+.tag.bot { background: #22323f; }
+.tag.sb { background: #274a8a; color: #cfe7ff; }
+.tag.bb { background: #7a4b0f; color: #ffe0a8; }
+.tag.fold { background: #4a1e1e; color: #ffb0b0; }
+.tag.allin { background: #5a1e75; color: #f0d0ff; }
+
+.seat-cards {
+  position: absolute; top: -34px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 3px;
+}
+.hand-mask {
+  position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px);
+  font-size: 9px; color: #cfd6ee; background: rgba(0,0,0,.55);
+  padding: 1px 4px; border-radius: 4px; white-space: nowrap;
+}
+.seat-bet {
+  position: absolute; top: -14px; right: -8px;
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(0,0,0,.6); border: 1px solid #f5c518; border-radius: 10px;
+  padding: 1px 6px; font-size: 10px; color: #f5c518; font-weight: 800;
+}
+
+/* ---------- ????????? + ?? + ?? ---------- */
+.me-panel {
+  position: absolute; left: 2%; bottom: -2%;
+  width: 46%; max-width: 220px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 4px 6px 6px; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(20,30,60,.75), rgba(6,10,26,.9));
+  border: 1px solid rgba(245,197,24,.4);
+  box-shadow: 0 6px 18px rgba(0,0,0,.55);
+  z-index: 6;
+}
+.me-panel.active { animation: mePulse 1.2s infinite; }
+@keyframes mePulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(245,197,24,.6); }
+  50% { box-shadow: 0 0 0 6px rgba(245,197,24,0); }
+}
 .me-cards { display: flex; gap: 6px; }
-.me-info { display: flex; align-items: center; gap: 8px; }
-.me-meta { display: flex; flex-direction: column; gap: 2px; }
-.me-meta .seat-name { max-width: 120px; font-size: 14px; }
-.action-area { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; }
-.raise-group { display: flex; align-items: center; gap: 6px; }
-.raise-group input { width: 110px; }
-.wait-text { color: var(--muted); font-size: 13px; }
+.me-rank {
+  font-size: 12px; font-weight: 800; color: #f5c518; letter-spacing: 1px;
+}
+.me-win { width: 100%; }
+.me-win-bar {
+  height: 6px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden;
+  border: 1px solid rgba(255,255,255,.15);
+}
+.me-win-fill {
+  height: 100%; background: linear-gradient(90deg, #4dd0e1, #f5c518);
+  transition: width .4s ease;
+}
+.me-win-text { font-size: 10px; color: #cfd6ee; text-align: right; margin-top: 1px; }
+
+/* ---------- ???? 4 ?? ---------- */
+.action-bar {
+  flex: 0 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #05070f 60%, transparent);
+  z-index: 25;
+}
+.act-btn {
+  height: 46px; border-radius: 14px; border: 1px solid #6b93ff;
+  background: linear-gradient(180deg, #2f4fb0, #16296b);
+  color: #fff; font-size: 14px; font-weight: 800; letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2);
+  cursor: pointer;
+}
+.act-btn.primary {
+  background: linear-gradient(180deg, #3f6bff, #1f3ecf);
+  border-color: #9db6ff;
+}
+.act-btn:disabled {
+  background: linear-gradient(180deg, #303645, #1a1e2a);
+  color: #6b7396; border-color: #2d3547; cursor: not-allowed;
+  box-shadow: none;
+}
 
 .err {
-  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  color: #ff8a80; font-size: 12px; z-index: 40; background: rgba(0,0,0,.6); padding: 2px 8px; border-radius: 6px;
+  position: absolute; bottom: 66px; left: 50%; transform: translateX(-50%);
+  color: #ff8a80; font-size: 12px; z-index: 40;
+  background: rgba(0,0,0,.7); padding: 3px 10px; border-radius: 6px;
 }
-/* --- optimized action bar (per CHANGE_REQUEST) --- */
-.action-area { gap: 10px; padding: 4px 0 2px; }
-.action-area button.btn-fold,
-.action-area button.btn-call,
-.action-area button.btn-raise,
-.action-area button.btn-allin {
-  min-width: 84px; min-height: 52px;
-  border-radius: 10px; border: none; padding: 0 14px;
-  font-weight: 800; font-size: 15px; letter-spacing: 1px;
-  box-shadow: 0 4px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.25);
-  cursor: pointer; transition: transform .08s ease, filter .15s ease;
-}
-.action-area button.btn-fold:active,
-.action-area button.btn-call:active,
-.action-area button.btn-raise:active,
-.action-area button.btn-allin:active { transform: translateY(1px); filter: brightness(.95); }
-.action-area .btn-fold  { background: linear-gradient(135deg, #e53935, #b71c1c); color: #fff; }
-.action-area .btn-call  { background: linear-gradient(135deg, #ffb300, #ff8f00); color: #1a1a1a; }
-.action-area .btn-raise { background: linear-gradient(135deg, #42a5f5, #1565c0); color: #fff; }
-.action-area .btn-allin { background: linear-gradient(135deg, #f5f5f5, #e0e0e0); color: #1a1a1a; }
-.action-area .raise-group { display: flex; align-items: center; gap: 6px; }
-.action-area .raise-group input {
-  width: 80px; height: 44px; padding: 0 8px; border-radius: 8px;
-  border: 1px solid var(--panel-border); background: rgba(0,0,0,.35);
-  color: var(--text); font-size: 14px; text-align: center;
-}
-.me-seat { flex-direction: column; gap: 4px; }
-.me-cards { gap: 8px; }
-
-
-/* --- CHANGE_REQUEST: hole cards centered below table --- */
-.me-hand-center {
-  position: absolute;
-  bottom: 90px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  z-index: 10;
-  pointer-events: none;
-}
-.me-hand-center .me-cards { display: flex; gap: 8px; }
-.me-hand-rank {
-  color: var(--gold);
-  font-size: 14px;
-  font-weight: 700;
-  text-shadow: 0 1px 3px rgba(0,0,0,.6);
-  letter-spacing: 1px;
-}
-.me-hand-center.active { animation: seatPulse 1.2s infinite; border-radius: 12px; padding: 2px 6px; }
-
-/* female dealer avatar bg */
-.dealer-avatar {
-  background: linear-gradient(135deg, #fbeee0, #d9b892) !important;
+.loading {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: #cfd6ee; font-size: 14px;
 }
 
-/* shrink seat-5 (self) */
-.seat-5 { transform: scale(.9); transform-origin: bottom left; }
-
-/* --- CHANGE_REQUEST: blue rectangular action buttons --- */
-.action-area button.btn-fold,
-.action-area button.btn-call,
-.action-area button.btn-raise,
-.action-area button.btn-allin {
-  background: linear-gradient(180deg, #4f7ce8, #2a4fb8) !important;
-  color: #fff !important;
-  border: 1px solid #6b93ff !important;
-  border-radius: 6px !important;
-  min-width: 90px;
-  min-height: 48px;
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.2) !important;
+/* ???? */
+@media (max-width: 380px) {
+  .table-watermark { font-size: 32px; letter-spacing: 8px; }
+  .act-btn { font-size: 13px; height: 42px; }
+  .avatar-wrap { width: 46px; height: 46px; }
+  .avatar { font-size: 15px; }
 }
-.action-area .btn-fold {
-  background: linear-gradient(180deg, #e74c3c, #b03729) !important;
-  border-color: #ff8a7a !important;
-}
-
 </style>
