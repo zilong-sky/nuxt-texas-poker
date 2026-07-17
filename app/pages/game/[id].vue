@@ -512,7 +512,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
-  position: absolute; top: 4%; bottom: 24%; left: 90px; right: 90px;
+  position: absolute; top: 2%; bottom: 12%; left: 90px; right: 90px;
 }
 .dealer-top {
   position: absolute; left: 50%; top: 4%; transform: translate(-50%, -40%);
@@ -719,9 +719,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
-  position: absolute; left: 50%;
-  bottom: calc(72px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  position: absolute; left: 50%; top: 88%;
+  transform: translate(-50%, -6px);
   width: auto; max-width: 260px; min-width: 140px;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 6px 10px 8px; border-radius: 14px;
