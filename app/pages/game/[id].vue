@@ -117,12 +117,8 @@
             </div>
           </div>
 
-          <!-- 我方手牌 + 牌型 + 胜率 + 倒计时，紧贴席位1头像上方 -->
+          <!-- 我方手牌 + 牌型 + 胜率，紧贴席位1头像上方 -->
           <div class='me-panel' :class='{ active: isMyTurn }'>
-            <svg v-if='isMyTurn' class='me-timer-ring' viewBox='0 0 100 100'>
-              <circle class='ring-bg' cx='50' cy='50' r='46' />
-              <circle class='ring-fg' cx='50' cy='50' r='46' :stroke-dasharray='289.03' :stroke-dashoffset='289.03 * (1 - timerPctVal / 100)' />
-            </svg>
             <div class='me-cards'>
               <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
               <div v-if='dealerIsMe' class='table-dealer-chip me-dealer'>D</div>
