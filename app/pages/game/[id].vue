@@ -77,26 +77,46 @@
                 </div>
               </div>
             </div>
+
+            <!-- 桌面上：其他5席位的背面手牌，按席位方向贴在桌面边缘 -->
+            <template v-for='s in seats' :key="'th-'+s.player.id">
+              <div v-if='!s.isMe' class='table-hand' :class="'th-seat-'+s.seatNo">
+                <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' />
+                <div v-if='!revealStage && s.player.hand && s.player.hand.length' class='hand-mask'>暂时无法查看</div>
+                <div v-if='s.dealer' class='table-dealer-chip'>D</div>
+              </div>
+            </template>
+
+            <!-- 桌面上：本人手牌 + 牌型 + 胜率 + 60s倒计时环，居中在桌面下沿 -->
+            <div class='me-panel' :class='{ active: isMyTurn }'>
+              <svg v-if='isMyTurn' class='me-timer-ring' viewBox='0 0 100 100'>
+                <circle class='ring-bg' cx='50' cy='50' r='46' />
+                <circle class='ring-fg' cx='50' cy='50' r='46' :stroke-dasharray='289.03' :stroke-dashoffset='289.03 * (1 - timerPctVal / 100)' />
+                <text class='ring-text' x='50' y='58' text-anchor='middle'>{{ remaining }}</text>
+              </svg>
+              <div class='me-cards'>
+                <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
+                <div v-if='dealerIsMe' class='table-dealer-chip me-dealer'>D</div>
+              </div>
+              <div class='me-rank'>{{ meHandRankText }}</div>
+              <div class='me-win'>
+                <div class='me-win-bar'>
+                  <div class='me-win-fill' :style='{ width: winRatePct + pctSuffix }'></div>
+                </div>
+                <div class='me-win-text'>胜率 {{ winRatePct }}%</div>
+              </div>
+            </div>
           </div>
 
-          <!-- 6 席位环形布局：席位1 = 玩家本人（下方左侧永久固定） -->
+          <!-- 6 席位环形布局：席位1 = 玩家本人（下方左侧永久固定），仅头像+筹码，无名字 -->
           <div v-for='s in seats' :key='s.player.id' class='seat' :class='[seatPrefix + s.seatNo, { active: s.active, folded: s.player.folded, bust: s.player.bust, me: s.isMe, offline: s.player.offline }]'>
-            <div v-if='!s.isMe' class='seat-cards'>
-              <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' />
-              <div v-if='!revealStage && s.player.hand && s.player.hand.length' class='hand-mask'>暂时无法查看</div>
-            </div>
             <div class='avatar-wrap' :class='{ turn: s.active }'>
               <svg v-if='s.active' class='timer-ring' viewBox='0 0 44 44'>
                 <circle class='ring-bg' cx='22' cy='22' r='20' />
                 <circle class='ring-fg' cx='22' cy='22' r='20' :stroke-dasharray='125.66' :stroke-dashoffset='125.66 * (1 - s.timerPct / 100)' />
               </svg>
               <div class='avatar'>{{ initial(s.player.name) }}</div>
-              <div v-if='s.dealer' class='dealer-badge'>D</div>
               <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
-            </div>
-            <div class='seat-name-row'>
-              <span class='seat-name'>{{ s.player.name }}</span>
-              <span v-if='s.player.isBot' class='tag bot'>Bot</span>
             </div>
             <div class='chip-row'>
               <span class='coin'>🪙</span>
@@ -120,19 +140,6 @@
             </div>
           </div>
 
-          <!-- 玩家本人（席位1）底牌 + 牌型 + 胜率进度条 -->
-          <div class='me-panel' :class='{ active: isMyTurn }'>
-            <div class='me-cards'>
-              <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
-            </div>
-            <div class='me-rank'>{{ meHandRankText }}</div>
-            <div class='me-win'>
-              <div class='me-win-bar'>
-                <div class='me-win-fill' :style='{ width: winRatePct + pctSuffix }'></div>
-              </div>
-              <div class='me-win-text'>胜率 {{ winRatePct }}%</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -226,6 +233,7 @@ const myKvSeat = computed<number>(() => {
   return meP?.seat ?? -1
 })
 
+const dealerIsMe = computed(() => players.value[dealerIdx.value]?.id === store.playerId)
 const isMyTurn = computed(() => {
   const g = game.value
   if (!g || g.stage === 'ended') return false
@@ -649,9 +657,12 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 .chip-row {
   display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px;
-  background: rgba(0,0,0,.55); border-radius: 10px;
-  border: 1px solid rgba(245,197,24,.4);
-  font-size: 12px; color: #f5c518; font-weight: 800;
+  background: linear-gradient(180deg, #f5c518, #b8890a);
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.45);
+  font-size: 12px; color: #1a1206; font-weight: 800;
+  margin-top: -10px; position: relative; z-index: 4;
+  box-shadow: 0 2px 4px rgba(0,0,0,.5);
 }
 .chip-row .coin { font-size: 12px; }
 
@@ -702,14 +713,57 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
-  position: absolute; left: 2%; bottom: -2%;
-  width: 46%; max-width: 220px;
+  position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%);
+  width: 46%; max-width: 240px; min-width: 180px;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 4px 6px 6px; border-radius: 12px;
-  background: linear-gradient(180deg, rgba(20,30,60,.75), rgba(6,10,26,.9));
-  border: 1px solid rgba(245,197,24,.4);
-  box-shadow: 0 6px 18px rgba(0,0,0,.55);
+  padding: 6px 8px 8px; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(20,30,60,.78), rgba(6,10,26,.92));
+  border: 1px solid rgba(245,197,24,.45);
+  box-shadow: 0 6px 20px rgba(0,0,0,.6);
   z-index: 6;
+}
+.me-timer-ring {
+  position: absolute; top: -34px; left: 50%; transform: translateX(-50%);
+  width: 46px; height: 46px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}
+.me-timer-ring .ring-bg { fill: rgba(0,0,0,.55); stroke: rgba(255,255,255,.15); stroke-width: 4; }
+.me-timer-ring .ring-fg {
+  fill: none; stroke: #f5c518; stroke-width: 4; stroke-linecap: round;
+  transform: rotate(-90deg); transform-origin: 50% 50%;
+  transition: stroke-dashoffset .4s linear;
+}
+.me-timer-ring .ring-text {
+  fill: #f5c518; font-size: 22px; font-weight: 800;
+  font-family: system-ui, sans-serif;
+}
+.me-cards { position: relative; }
+.table-hand {
+  position: absolute; display: flex; gap: 3px; z-index: 3;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.6));
+}
+.table-hand .hand-mask {
+  position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px);
+  font-size: 9px; color: #cfd6ee; background: rgba(0,0,0,.55);
+  padding: 1px 4px; border-radius: 4px; white-space: nowrap;
+}
+.table-hand.th-seat-2 { right: 8%;  bottom: 14%; }
+.table-hand.th-seat-3 { right: 3%;  top: 40%; }
+.table-hand.th-seat-4 { right: 32%; top: 8%; }
+.table-hand.th-seat-5 { left: 32%;  top: 8%; }
+.table-hand.th-seat-6 { left: 8%;   bottom: 14%; }
+.table-dealer-chip {
+  position: absolute; left: 100%; top: 50%; transform: translate(4px, -50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #b0b0b0 60%, #6a6a6a 100%);
+  color: #1a1a1a; font-weight: 900; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #f5c518;
+  box-shadow: 0 2px 5px rgba(0,0,0,.55);
+  z-index: 4;
+}
+.table-dealer-chip.me-dealer {
+  left: auto; right: -22px; top: 50%; transform: translateY(-50%);
 }
 .me-panel.active { animation: mePulse 1.2s infinite; }
 @keyframes mePulse {
