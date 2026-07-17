@@ -91,7 +91,6 @@
             <div class='avatar-wrap' :class='{ turn: s.active }'>
               <div class='avatar'>{{ initial(s.player.name) }}</div>
               <div v-if='s.active' class='timer-mask' :class="[s.remaining <= 30 ? 'red' : 'yellow']" :style="{ '--pct': s.timerPct }"></div>
-              <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
               <div v-if='!s.isMe && s.player.hand && s.player.hand.length' class='peer-hand' :class="'ph-seat-'+s.seatNo">
                 <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' class='peer-card' :class="'peer-card-'+ci" />
                 <div v-if='s.dealer' class='table-dealer-chip'>D</div>
@@ -123,7 +122,6 @@
             <svg v-if='isMyTurn' class='me-timer-ring' viewBox='0 0 100 100'>
               <circle class='ring-bg' cx='50' cy='50' r='46' />
               <circle class='ring-fg' cx='50' cy='50' r='46' :stroke-dasharray='289.03' :stroke-dashoffset='289.03 * (1 - timerPctVal / 100)' />
-              <text class='ring-text' x='50' y='58' text-anchor='middle'>{{ remaining }}</text>
             </svg>
             <div class='me-cards'>
               <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
