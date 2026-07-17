@@ -83,14 +83,6 @@
               </div>
             </div>
 
-            <!-- 桌面上：其他5席位的背面手牌，按席位方向贴在桌面边缘 -->
-            <template v-for='s in seats' :key="'th-'+s.player.id">
-              <div v-if='!s.isMe' class='table-hand' :class="'th-seat-'+s.seatNo">
-                <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' />
-                <div v-if='!revealStage && s.player.hand && s.player.hand.length' class='hand-mask'>暂时无法查看</div>
-                <div v-if='s.dealer' class='table-dealer-chip'>D</div>
-              </div>
-            </template>
 
           </div>
 
@@ -104,6 +96,10 @@
               <div class='avatar'>{{ initial(s.player.name) }}</div>
               <div class='gift-badge' aria-hidden='true'>🎁</div>
               <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
+              <div v-if='!s.isMe && s.player.hand && s.player.hand.length' class='peer-hand' :class="'ph-seat-'+s.seatNo">
+                <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' class='peer-card' :class="'peer-card-'+ci" />
+                <div v-if='s.dealer' class='table-dealer-chip'>D</div>
+              </div>
             </div>
             <div class='chip-row'>
               <span class='coin'>🪙</span>
@@ -839,22 +835,25 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .me-cards :deep(.pcard.big .r) { font-size: 22px; }
 .me-cards :deep(.pcard.big .s) { font-size: 18px; }
 .me-cards :deep(.pcard.big.back)::after { font-size: 24px; }
-.table-hand {
-  position: absolute; display: flex; gap: 3px; z-index: 3;
+/* peer 手牌：两张牌背在容器内交叉叠放，容器整体旋转朝向该玩家 */
+.peer-hand {
+  position: absolute; width: 42px; height: 48px; z-index: 3;
+  pointer-events: none;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.6));
 }
-.table-hand .hand-mask {
-  position: absolute; left: 50%; top: 100%; transform: translate(-50%, 2px);
-  font-size: 9px; color: #cfd6ee; background: rgba(0,0,0,.55);
-  padding: 1px 4px; border-radius: 4px; white-space: nowrap;
-}
-/* non-me hands anchored on the INNER side of each avatar (toward table center) */
-.table-hand { transform: translate(-50%, -50%); }
-.table-hand.th-seat-2 { left: 70%; top: 66%; }
-.table-hand.th-seat-3 { left: 70%; top: 34%; }
-.table-hand.th-seat-4 { left: 60%; top: 30%; }
-.table-hand.th-seat-5 { left: 40%; top: 30%; }
-.table-hand.th-seat-6 { left: 30%; top: 50%; }
+.peer-hand .peer-card { position: absolute; left: 50%; top: 50%; }
+.peer-hand :deep(.pcard.mini) { width: 34px; height: 48px; }
+.peer-hand :deep(.pcard.mini .r) { font-size: 14px; }
+.peer-hand :deep(.pcard.mini .s) { font-size: 12px; }
+.peer-hand :deep(.pcard.mini.back)::after { font-size: 14px; }
+.peer-hand .peer-card-0 { transform: translate(-50%, -50%) rotate(-8deg) translate(-4px, 0); }
+.peer-hand .peer-card-1 { transform: translate(-50%, -50%) rotate(8deg) translate(4px, 0); }
+/* 席位方向：容器整体旋转使牌背朝向该玩家；置于头像内侧(桌内)且留小间距 */
+.peer-hand.ph-seat-2 { left: 50%; top: auto; bottom: 100%; margin-bottom: 8px; transform: translate(-50%, 0) rotate(0deg); }
+.peer-hand.ph-seat-3 { left: auto; right: 100%; top: 50%; margin-right: 8px; transform: translate(0, -50%) rotate(90deg); }
+.peer-hand.ph-seat-4 { left: 50%; top: 100%; margin-top: 8px; transform: translate(-50%, 0) rotate(180deg); }
+.peer-hand.ph-seat-5 { left: 50%; top: 100%; margin-top: 8px; transform: translate(-50%, 0) rotate(180deg); }
+.peer-hand.ph-seat-6 { left: 100%; top: 50%; margin-left: 8px; transform: translate(0, -50%) rotate(-90deg); }
 .table-dealer-chip {
   position: absolute; left: 100%; top: 50%; transform: translate(4px, -50%);
   width: 20px; height: 20px; border-radius: 50%;
