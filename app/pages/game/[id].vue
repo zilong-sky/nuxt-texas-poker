@@ -380,7 +380,16 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   background: #0a0d14;
   font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
-/* removed forced-portrait rotate hack: user rotates device manually */
+/* Force landscape on portrait devices by rotating the whole page 90deg. */
+@media (orientation: portrait) {
+  .game-page {
+    position: fixed; top: 0; left: 100dvw;
+    width: 100dvh; height: 100dvw;
+    transform: rotate(90deg);
+    transform-origin: top left;
+    inset: auto;
+  }
+}
 
 
 /* ---------- 左侧竖向功能栏 ---------- */
@@ -509,11 +518,12 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
-  position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(84cqw, 148cqh);
+  position: absolute; left: 60px; right: 20px; top: 50%;
+  transform: translateY(-50%);
   aspect-ratio: 2 / 1;
-  max-width: calc(100% - 130px);
+  width: auto;
+  max-width: calc(100% - 80px);
+  margin: 0 auto;
 }
 .dealer-top {
   position: absolute; left: 50%; top: 0; transform: translate(-50%, -55%);
@@ -645,12 +655,12 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 30%; top: 78%; transform: translate(-50%, -50%); }
-.seat-2 { left: 78%; top: 70%; transform: translate(-50%, -50%); }
-.seat-3 { left: 78%; top: 30%; transform: translate(-50%, -50%); }
-.seat-4 { left: 65%; top: 22%; transform: translate(-50%, -50%); }
-.seat-5 { left: 35%; top: 22%; transform: translate(-50%, -50%); }
-.seat-6 { left: 22%; top: 50%; transform: translate(-50%, -50%); }
+.seat-1 { left: 16.3%; top: 74.4%; transform: translate(-50%, -50%); }
+.seat-2 { left: 57.6%; top: 87.4%; transform: translate(-50%, -50%); }
+.seat-3 { left: 91.3%; top: 63.0%; transform: translate(-50%, -50%); }
+.seat-4 { left: 83.7%; top: 25.6%; transform: translate(-50%, -50%); }
+.seat-5 { left: 42.4%; top: 12.6%; transform: translate(-50%, -50%); }
+.seat-6 { left: 8.7%; top: 37.0%; transform: translate(-50%, -50%); }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
 .seat.folded { opacity: .5; }
@@ -751,13 +761,15 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
-  position: absolute; left: 42%; top: 70%;
-  width: 13%; max-width: 220px; min-width: 130px;
+  position: absolute; left: 50%; top: 100%;
+  transform: translate(-50%, -50%);
+  width: auto; max-width: 220px; min-width: 130px;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 4px 8px 6px; border-radius: 12px;
   background: linear-gradient(180deg, rgba(20,30,60,.78), rgba(6,10,26,.92));
   border: 1px solid rgba(245,197,24,.5);
   box-shadow: 0 6px 18px rgba(0,0,0,.6);
+  z-index: 10;
   z-index: 18;
 }
 .me-timer-ring {
