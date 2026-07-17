@@ -388,34 +388,39 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 左侧竖向功能栏 ---------- */
 .side-rail {
-  position: absolute; left: 6px; top: 6px; bottom: 96px;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  z-index: 20; padding: 4px 2px;
+  position: absolute; left: 2px; top: 6px; bottom: 96px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  z-index: 20; padding: 4px 0;
+  pointer-events: none;
+  background: transparent;
 }
+.side-rail > * { pointer-events: auto; }
 .rail-btn {
-  width: 40px; height: 40px; border-radius: 10px; border: none; color: #fff;
+  width: 36px; height: 36px; border-radius: 10px; border: none; color: #fff;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 3px 8px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.15);
+  box-shadow: 0 3px 8px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
+  opacity: .88;
   cursor: pointer; padding: 0; line-height: 1;
 }
-.rail-btn .arrow { font-size: 18px; }
-.rail-btn .ico { font-size: 18px; }
+.rail-btn:hover { opacity: 1; }
+.rail-btn .arrow { font-size: 16px; }
+.rail-btn .ico { font-size: 16px; }
 .back-btn, .chat-btn {
-  background: linear-gradient(180deg, #7a4bd6, #4b28a3);
+  background: linear-gradient(180deg, rgba(122,75,214,.78), rgba(75,40,163,.78));
 }
 .target-btn {
   background: radial-gradient(circle at 50% 50%,
-    #fff 0 22%, #e53935 22% 40%, #fff 40% 55%, #e53935 55% 72%, #fff 72% 82%, #e53935 82% 100%);
+    rgba(255,255,255,.9) 0 22%, rgba(229,57,53,.85) 22% 40%, rgba(255,255,255,.9) 40% 55%, rgba(229,57,53,.85) 55% 72%, rgba(255,255,255,.9) 72% 82%, rgba(229,57,53,.85) 82% 100%);
   border-radius: 50%;
   position: relative;
 }
-.target-btn .ico-target { width: 6px; height: 6px; border-radius: 50%; background: #111; box-shadow: 0 0 0 2px #fff; }
+.target-btn .ico-target { width: 5px; height: 5px; border-radius: 50%; background: #111; box-shadow: 0 0 0 2px #fff; }
 .buff-btn {
-  background: linear-gradient(180deg, #ff9a2f, #d15a00);
+  background: linear-gradient(180deg, rgba(255,154,47,.82), rgba(209,90,0,.82));
   flex-direction: column; gap: 0; font-weight: 800;
 }
-.buff-btn .buff-line1 { font-size: 10px; letter-spacing: 1px; }
-.buff-btn .buff-line2 { font-size: 9px; opacity: .95; }
+.buff-btn .buff-line1 { font-size: 9px; letter-spacing: 1px; }
+.buff-btn .buff-line2 { font-size: 8px; opacity: .95; }
 .rail-time {
   color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 1px;
   background: rgba(0,0,0,.35); padding: 2px 6px; border-radius: 6px;
@@ -607,12 +612,12 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 22%; bottom: 22%; transform: translateX(-50%); }
-.seat-2 { right: 6%;  bottom: 24%; }
+.seat-1 { left: 20%; bottom: 20%; transform: translateX(-50%); }
+.seat-2 { right: 2%;  bottom: 20%; }
 .seat-3 { right: 2%;  top: 24%; }
 .seat-4 { right: 30%; top: -1%; }
 .seat-5 { left: 30%;  top: -1%; }
-.seat-6 { left: 6%;   bottom: 24%; }
+.seat-6 { left: 10%;  bottom: 26%; }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
 .seat.folded { opacity: .5; }
@@ -713,18 +718,18 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
-  position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%);
-  width: 46%; max-width: 240px; min-width: 180px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 6px 8px 8px; border-radius: 14px;
-  background: linear-gradient(180deg, rgba(20,30,60,.78), rgba(6,10,26,.92));
+  position: absolute; left: 50%; bottom: 2%; transform: translateX(-50%);
+  width: auto; max-width: 180px; min-width: 120px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 4px 6px 6px; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(20,30,60,.72), rgba(6,10,26,.88));
   border: 1px solid rgba(245,197,24,.45);
-  box-shadow: 0 6px 20px rgba(0,0,0,.6);
+  box-shadow: 0 4px 14px rgba(0,0,0,.55);
   z-index: 6;
 }
 .me-timer-ring {
-  position: absolute; top: -34px; left: 50%; transform: translateX(-50%);
-  width: 46px; height: 46px;
+  position: absolute; top: 50%; left: -44px; transform: translateY(-50%);
+  width: 38px; height: 38px;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
 }
 .me-timer-ring .ring-bg { fill: rgba(0,0,0,.55); stroke: rgba(255,255,255,.15); stroke-width: 4; }
@@ -734,10 +739,14 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   transition: stroke-dashoffset .4s linear;
 }
 .me-timer-ring .ring-text {
-  fill: #f5c518; font-size: 22px; font-weight: 800;
+  fill: #f5c518; font-size: 26px; font-weight: 800;
   font-family: system-ui, sans-serif;
 }
 .me-cards { position: relative; }
+.me-cards :deep(.pcard.big) { width: 44px; height: 60px; }
+.me-cards :deep(.pcard.big .r) { font-size: 18px; }
+.me-cards :deep(.pcard.big .s) { font-size: 15px; }
+.me-cards :deep(.pcard.big.back)::after { font-size: 20px; }
 .table-hand {
   position: absolute; display: flex; gap: 3px; z-index: 3;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.6));
@@ -770,7 +779,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   0%,100% { box-shadow: 0 0 0 0 rgba(245,197,24,.6); }
   50% { box-shadow: 0 0 0 6px rgba(245,197,24,0); }
 }
-.me-cards { display: flex; gap: 6px; }
+.me-cards { display: flex; gap: 4px; }
 .me-rank { font-size: 12px; font-weight: 800; color: #f5c518; letter-spacing: 1px; }
 .me-win { width: 100%; }
 .me-win-bar {
