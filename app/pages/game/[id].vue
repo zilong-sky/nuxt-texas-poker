@@ -565,7 +565,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .table-wrap {
   position: absolute; left: 110px; right: 110px; top: 50%;
   transform: translateY(-50%);
-  height: clamp(200px, 40vh, 320px);
+  height: clamp(140px, 26vh, 220px);
   width: auto;
   max-width: calc(100% - 220px);
   margin: 0 auto;
