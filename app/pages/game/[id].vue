@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class='game-page' :style="{ '--vvw': vvw + 'px', '--vvh': vvh + 'px' }">
     <!-- 左侧竖向功能栏：返回 + 系统时间 + 聊天 + 靶心 + BUFF -->
     <div class='top-rail'>
@@ -94,7 +94,6 @@
                 <circle class='ring-fg' cx='22' cy='22' r='20' :stroke-dasharray='125.66' :stroke-dashoffset='125.66 * (1 - s.timerPct / 100)' />
               </svg>
               <div class='avatar'>{{ initial(s.player.name) }}</div>
-              <div class='gift-badge' aria-hidden='true'>🎁</div>
               <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
               <div v-if='!s.isMe && s.player.hand && s.player.hand.length' class='peer-hand' :class="'ph-seat-'+s.seatNo">
                 <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' class='peer-card' :class="'peer-card-'+ci" />
@@ -668,17 +667,6 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   transform: rotate(-8deg);
 }
 
-/* ---------- 头像紫色礼物角标 ---------- */
-.gift-badge {
-  position: absolute; top: -4px; right: -4px;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #b98cff, #6a2fcf 65%, #3d1685 100%);
-  border: 2px solid #f5c518;
-  color: #fff; font-size: 11px; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,.55);
-  z-index: 5;
-}
 .stage-tag {
   position: absolute; top: 10%; right: 12%;
   font-size: 10px; letter-spacing: 3px; color: #f5c518; opacity: .85;
@@ -846,8 +834,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .peer-hand :deep(.pcard.mini .r) { font-size: 14px; }
 .peer-hand :deep(.pcard.mini .s) { font-size: 12px; }
 .peer-hand :deep(.pcard.mini.back)::after { font-size: 14px; }
-.peer-hand .peer-card-0 { transform: translate(-50%, -50%) rotate(-8deg) translate(-4px, 0); }
-.peer-hand .peer-card-1 { transform: translate(-50%, -50%) rotate(8deg) translate(4px, 0); }
+.peer-hand .peer-card-0 { transform: translate(-50%, -50%) rotate(-8deg) translate(-4px, 0) scale(0.67); }
+.peer-hand .peer-card-1 { transform: translate(-50%, -50%) rotate(8deg) translate(4px, 0) scale(0.67); }
 /* 席位方向：容器整体旋转使牌背朝向该玩家；置于头像内侧(桌内)且留小间距 */
 .peer-hand.ph-seat-2 { left: 50%; top: auto; bottom: 100%; margin-bottom: 8px; transform: translate(-50%, 0) rotate(0deg); }
 .peer-hand.ph-seat-3 { left: auto; right: 100%; top: 50%; margin-right: 8px; transform: translate(0, -50%) rotate(90deg); }
