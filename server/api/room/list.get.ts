@@ -1,5 +1,5 @@
-﻿import { defineEventHandler } from 'h3'
-import { listWaitingRooms } from '~~/server/utils/store'
+import { defineEventHandler } from 'h3'
+import { listWaitingRooms, isRoomDead } from '~~/server/utils/store'
 import { MAX_PLAYERS } from '~~/server/utils/types'
 
 /**
@@ -8,7 +8,7 @@ import { MAX_PLAYERS } from '~~/server/utils/types'
 export default defineEventHandler(async () => {
   const rooms = await listWaitingRooms()
   const list = rooms
-    .filter(r => r.players.length < MAX_PLAYERS)
+    .filter(r => !isRoomDead(r) && r.players.length < MAX_PLAYERS)
     .map(r => {
       const host = r.players.find(p => p.id === r.hostId)
       return {
