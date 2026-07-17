@@ -87,25 +87,6 @@
               </div>
             </template>
 
-            <!-- 桌面上：本人手牌 + 牌型 + 胜率 + 60s倒计时环，居中在桌面下沿 -->
-            <div class='me-panel' :class='{ active: isMyTurn }'>
-              <svg v-if='isMyTurn' class='me-timer-ring' viewBox='0 0 100 100'>
-                <circle class='ring-bg' cx='50' cy='50' r='46' />
-                <circle class='ring-fg' cx='50' cy='50' r='46' :stroke-dasharray='289.03' :stroke-dashoffset='289.03 * (1 - timerPctVal / 100)' />
-                <text class='ring-text' x='50' y='58' text-anchor='middle'>{{ remaining }}</text>
-              </svg>
-              <div class='me-cards'>
-                <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
-                <div v-if='dealerIsMe' class='table-dealer-chip me-dealer'>D</div>
-              </div>
-              <div class='me-rank'>{{ meHandRankText }}</div>
-              <div class='me-win'>
-                <div class='me-win-bar'>
-                  <div class='me-win-fill' :style='{ width: winRatePct + pctSuffix }'></div>
-                </div>
-                <div class='me-win-text'>胜率 {{ winRatePct }}%</div>
-              </div>
-            </div>
           </div>
 
           <!-- 6 席位环形布局：席位1 = 玩家本人（下方左侧永久固定），仅头像+筹码，无名字 -->
@@ -140,6 +121,26 @@
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- 桌面上：本人手牌 + 牌型 + 胜率 + 60s倒计时环，居中在桌面下沿 -->
+      <div class='me-panel' :class='{ active: isMyTurn }'>
+        <svg v-if='isMyTurn' class='me-timer-ring' viewBox='0 0 100 100'>
+          <circle class='ring-bg' cx='50' cy='50' r='46' />
+          <circle class='ring-fg' cx='50' cy='50' r='46' :stroke-dasharray='289.03' :stroke-dashoffset='289.03 * (1 - timerPctVal / 100)' />
+          <text class='ring-text' x='50' y='58' text-anchor='middle'>{{ remaining }}</text>
+        </svg>
+        <div class='me-cards'>
+          <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
+          <div v-if='dealerIsMe' class='table-dealer-chip me-dealer'>D</div>
+        </div>
+        <div class='me-rank'>{{ meHandRankText }}</div>
+        <div class='me-win'>
+          <div class='me-win-bar'>
+            <div class='me-win-fill' :style='{ width: winRatePct + pctSuffix }'></div>
+          </div>
+          <div class='me-win-text'>胜率 {{ winRatePct }}%</div>
         </div>
       </div>
 
@@ -511,7 +512,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
-  position: absolute; inset: 6% 6% 4% 6%;
+  position: absolute; top: 4%; bottom: 24%; left: 90px; right: 90px;
 }
 .dealer-top {
   position: absolute; left: 50%; top: 4%; transform: translate(-50%, -40%);
@@ -607,24 +608,24 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 席位（6 席环形） ---------- */
 .seat {
-  position: absolute; width: 22%; max-width: 96px; min-width: 74px;
+  position: absolute; width: 74px;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 20%; bottom: 20%; transform: translateX(-50%); }
-.seat-2 { right: 2%;  bottom: 20%; }
-.seat-3 { right: 2%;  top: 24%; }
-.seat-4 { right: 30%; top: -1%; }
-.seat-5 { left: 30%;  top: -1%; }
-.seat-6 { left: 10%;  bottom: 26%; }
+.seat-1 { left: 22%; bottom: 8%;  transform: translateX(-50%); }
+.seat-2 { right: 2%;  bottom: 8%; }
+.seat-3 { right: 2%;  top: 30%; }
+.seat-4 { right: 30%; top: -2%; }
+.seat-5 { left: 30%;  top: -2%; }
+.seat-6 { left: 2%;   bottom: 16%; }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
 .seat.folded { opacity: .5; }
 .seat.bust { opacity: .35; }
 .seat.offline { filter: grayscale(.6); }
 
-.avatar-wrap { position: relative; width: 54px; height: 54px; }
+.avatar-wrap { position: relative; width: 54px; height: 54px; flex: 0 0 54px; }
 .avatar {
   position: absolute; inset: 3px; border-radius: 50%;
   background: linear-gradient(160deg, #3f2a86, #1a1230);
@@ -718,18 +719,20 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
-  position: absolute; left: 50%; bottom: 2%; transform: translateX(-50%);
-  width: auto; max-width: 180px; min-width: 120px;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 4px 6px 6px; border-radius: 12px;
-  background: linear-gradient(180deg, rgba(20,30,60,.72), rgba(6,10,26,.88));
-  border: 1px solid rgba(245,197,24,.45);
-  box-shadow: 0 4px 14px rgba(0,0,0,.55);
-  z-index: 6;
+  position: absolute; left: 50%;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: auto; max-width: 260px; min-width: 140px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 10px 8px; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(20,30,60,.78), rgba(6,10,26,.92));
+  border: 1px solid rgba(245,197,24,.5);
+  box-shadow: 0 6px 18px rgba(0,0,0,.6);
+  z-index: 18;
 }
 .me-timer-ring {
-  position: absolute; top: 50%; left: -44px; transform: translateY(-50%);
-  width: 38px; height: 38px;
+  position: absolute; top: 50%; left: -10px; transform: translate(-100%, -50%);
+  width: 44px; height: 44px;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
 }
 .me-timer-ring .ring-bg { fill: rgba(0,0,0,.55); stroke: rgba(255,255,255,.15); stroke-width: 4; }
@@ -743,10 +746,10 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   font-family: system-ui, sans-serif;
 }
 .me-cards { position: relative; }
-.me-cards :deep(.pcard.big) { width: 44px; height: 60px; }
-.me-cards :deep(.pcard.big .r) { font-size: 18px; }
-.me-cards :deep(.pcard.big .s) { font-size: 15px; }
-.me-cards :deep(.pcard.big.back)::after { font-size: 20px; }
+.me-cards :deep(.pcard.big) { width: 52px; height: 72px; }
+.me-cards :deep(.pcard.big .r) { font-size: 22px; }
+.me-cards :deep(.pcard.big .s) { font-size: 18px; }
+.me-cards :deep(.pcard.big.back)::after { font-size: 24px; }
 .table-hand {
   position: absolute; display: flex; gap: 3px; z-index: 3;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.6));
