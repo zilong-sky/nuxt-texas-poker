@@ -558,11 +558,11 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
-  position: absolute; left: 60px; right: 20px; top: 50%;
+  position: absolute; left: 80px; right: 40px; top: 50%;
   transform: translateY(-50%);
   aspect-ratio: 2 / 1;
   width: auto;
-  max-width: calc(100% - 80px);
+  max-width: calc(100% - 120px);
   margin: 0 auto;
 }
 .dealer-top {
@@ -695,12 +695,12 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 16.3%; top: 74.4%; transform: translate(-50%, -50%); }
-.seat-2 { left: 57.6%; top: 87.4%; transform: translate(-50%, -50%); }
-.seat-3 { left: 91.3%; top: 63.0%; transform: translate(-50%, -50%); }
-.seat-4 { left: 83.7%; top: 25.6%; transform: translate(-50%, -50%); }
-.seat-5 { left: 42.4%; top: 12.6%; transform: translate(-50%, -50%); }
-.seat-6 { left: 8.7%; top: 37.0%; transform: translate(-50%, -50%); }
+.seat-1 { left: 38%; top: 88%; transform: translate(-50%, -50%); }
+.seat-2 { left: 62%; top: 88%; transform: translate(-50%, -50%); }
+.seat-3 { left: 95%; top: 50%; transform: translate(-50%, -50%); }
+.seat-4 { left: 62%; top: 12%; transform: translate(-50%, -50%); }
+.seat-5 { left: 38%; top: 12%; transform: translate(-50%, -50%); }
+.seat-6 { left: 14%; top: 50%; transform: translate(-50%, -50%); }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
 .seat.folded { opacity: .5; }
