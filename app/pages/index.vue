@@ -1,32 +1,31 @@
 <template>
   <div class="app-shell index-shell">
     <div class="index-card">
-      <h1 class="h-title center">🎴 德州扑克</h1>
+      <h1 class="h-title center">🎲 德州扑克</h1>
       <p class="center small">填写昵称后创建房间，或加入已有房间。</p>
 
-      <div class="index-grid">
-        <section class="index-section">
-          <h2 class="section-title">创建房间</h2>
-          <div class="col">
-            <input v-model="nickname" placeholder="昵称（1-12 字符）" maxlength="12" @input="onNicknameInput" />
-            <div class="row">
-              <input v-model="password" placeholder="创建密码" maxlength="20" @keyup.enter="onCreate" />
-              <button :disabled="loading" @click="onCreate">{{ loading ? '处理中…' : '创建房间' }}</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="index-section">
-          <h2 class="section-title">加入房间</h2>
-          <p v-if="!rooms.length" class="small center" style="opacity:.7;">暂无可加入的房间。</p>
-          <div v-else class="room-grid">
-            <button v-for="r in rooms" :key="r.id" class="ghost room-card" :disabled="loading" @click="onJoin(r.id)">
-              <div class="room-host">{{ r.hostName }}</div>
-              <div class="small">{{ r.playerCount }}/{{ r.maxPlayers }} 人</div>
-            </button>
-          </div>
-        </section>
+      <div class="nickname-row">
+        <input v-model="nickname" placeholder="昵称（1-12 字符）" maxlength="12" @input="onNicknameInput" />
       </div>
+
+      <section class="index-section">
+        <h2 class="section-title">创建房间</h2>
+        <div class="row">
+          <input v-model="password" placeholder="创建密码" maxlength="20" @keyup.enter="onCreate" />
+          <button :disabled="loading" @click="onCreate">{{ loading ? '处理中…' : '创建房间' }}</button>
+        </div>
+      </section>
+
+      <section class="index-section">
+        <h2 class="section-title">加入房间</h2>
+        <p v-if="!rooms.length" class="small center" style="opacity:.7;">暂无可加入的房间。</p>
+        <div v-else class="room-list">
+          <button v-for="r in rooms" :key="r.id" class="ghost room-card" :disabled="loading" @click="onJoin(r.id)">
+            <div class="room-host">{{ r.hostName }}</div>
+            <div class="small">{{ r.playerCount }}/{{ r.maxPlayers }} 人</div>
+          </button>
+        </div>
+      </section>
 
       <p v-if="errorText" class="center" style="color:#ff8a80;">{{ errorText }}</p>
     </div>
@@ -122,13 +121,14 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.index-shell { align-items: center; justify-content: center; }
-.index-card { width: 100%; max-width: 780px; display: flex; flex-direction: column; gap: 14px; }
-.index-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.col { display: flex; flex-direction: column; gap: 8px; }
+.index-shell { align-items: center; justify-content: flex-start; }
+.index-card { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 14px; }
+.nickname-row { display: flex; }
+.nickname-row input { flex: 1; }
 .section-title { font-size: 15px; margin: 0 0 8px; opacity: .85; }
-.room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
-.room-card { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.row { display: flex; gap: 8px; }
+.row input { flex: 1; }
+.room-list { display: flex; flex-direction: column; gap: 8px; }
+.room-card { display: flex; flex-direction: column; gap: 4px; text-align: left; width: 100%; }
 .room-host { font-weight: 700; }
-@media (max-width: 600px) { .index-grid { grid-template-columns: 1fr; } }
 </style>

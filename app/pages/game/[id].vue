@@ -268,13 +268,28 @@ async function leave() { await store.leave(); await navigateTo('/') }
 
 <style scoped>
 .game-page {
-  position: relative;
-  width: 100vw;
-  height: 100dvh;
+  position: fixed;
+  top: 0;
+  left: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   background: radial-gradient(ellipse at center, #0a2418 0%, var(--bg2) 70%);
+}
+@media (orientation: portrait) {
+  .game-page {
+    width: 100dvh;
+    height: 100dvw;
+    transform: rotate(90deg) translateY(-100dvw);
+    transform-origin: top left;
+  }
+}
+@media (orientation: landscape) {
+  .game-page {
+    width: 100dvw;
+    height: 100dvh;
+    transform: none;
+  }
 }
 
 .icon-btn {

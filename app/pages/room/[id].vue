@@ -9,7 +9,7 @@
 
       <div class="room-stats"><span class="chip lg">在线 {{ humanCount }} 真人 / {{ botCount }} 机器人</span></div>
 
-      <div class="player-grid">
+      <div class="player-list">
         <div v-for="p in room.players" :key="p.id" class="player-card">
           <div class="avatar">{{ initial(p.name) }}</div>
           <div class="player-info">
@@ -120,11 +120,10 @@ watch(() => store.room?.status, (s) => {
 .room-shell { justify-content: flex-start; }
 .room-head { text-align: center; }
 .room-stats { text-align: center; margin: 2px 0; }
-.player-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 780px; margin: 0 auto; width: 100%; }
+.player-list { display: flex; flex-direction: column; gap: 10px; max-width: 560px; margin: 0 auto; width: 100%; }
 .player-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: rgba(255,255,255,.06); }
 .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#334155,#1e293b); display: flex; align-items: center; justify-content: center; font-weight: 800; flex: 0 0 auto; }
 .player-info { min-width: 0; }
 .player-name { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .room-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; align-items: center; }
-@media (max-width: 600px) { .player-grid { grid-template-columns: repeat(2, 1fr); } }
 </style>
