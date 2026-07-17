@@ -560,13 +560,13 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .table-wrap {
   position: absolute; left: 80px; right: 40px; top: 50%;
   transform: translateY(-50%);
-  aspect-ratio: 2 / 1;
+  height: clamp(200px, 40vh, 320px);
   width: auto;
   max-width: calc(100% - 120px);
   margin: 0 auto;
 }
 .dealer-top {
-  position: absolute; left: 50%; top: 0; transform: translate(-50%, -55%);
+  position: absolute; left: 50%; top: 8%; transform: translate(-50%, -50%);
   z-index: 6; pointer-events: none;
 }
 .dealer-avatar {
@@ -607,7 +607,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 .table {
   position: absolute; inset: 0;
-  border-radius: 50% / 50%;
+  border-radius: 9999px;
   background: radial-gradient(ellipse at 50% 40%, #204d8a 0%, #123064 45%, #071736 100%);
   border: 6px solid #050914;
   box-shadow:
@@ -617,7 +617,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 }
 .table-inner {
   position: absolute; inset: 5%;
-  border-radius: 50% / 50%;
+  border-radius: 9999px;
   border: 2px solid rgba(245,197,24,.35);
   box-shadow: inset 0 0 40px rgba(0,0,0,.35);
 }
@@ -695,11 +695,11 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 38%; top: 88%; transform: translate(-50%, -50%); }
-.seat-2 { left: 62%; top: 88%; transform: translate(-50%, -50%); }
-.seat-3 { left: 95%; top: 50%; transform: translate(-50%, -50%); }
-.seat-4 { left: 62%; top: 12%; transform: translate(-50%, -50%); }
-.seat-5 { left: 38%; top: 12%; transform: translate(-50%, -50%); }
+.seat-1 { left: 30%; top: 92%; transform: translate(-50%, -50%); }
+.seat-2 { left: 70%; top: 92%; transform: translate(-50%, -50%); }
+.seat-3 { left: 96%; top: 50%; transform: translate(-50%, -50%); }
+.seat-4 { left: 70%; top: 8%; transform: translate(-50%, -50%); }
+.seat-5 { left: 30%; top: 8%; transform: translate(-50%, -50%); }
 .seat-6 { left: 14%; top: 50%; transform: translate(-50%, -50%); }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
