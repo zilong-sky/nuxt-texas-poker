@@ -94,14 +94,13 @@
               <div v-if='!s.isMe && s.player.hand && s.player.hand.length' class='peer-hand' :class="'ph-seat-'+s.seatNo">
                 <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' class='peer-card' :class="'peer-card-'+ci" />
                 <div v-if='s.dealer' class='table-dealer-chip'>D</div>
+                <div v-if='s.sb || s.bb' class='blind-tag'>{{ s.sb ? 'SB' : 'BB' }}</div>
               </div>
             </div>
             <div class='chip-row'>
               <span class='chip-val'>{{ formatChips(s.player.chips) }}</span>
             </div>
             <div class='seat-tags'>
-              <span v-if='s.sb' class='tag sb'>SB</span>
-              <span v-if='s.bb' class='tag bb'>BB</span>
               <span v-if='s.player.folded' class='tag fold'>弃牌</span>
               <span v-if='s.player.allIn' class='tag allin'>全下</span>
               <span v-if='s.player.bust' class='tag fold'>出局</span>
@@ -119,6 +118,7 @@
 
           <!-- 我方手牌 + 牌型 + 胜率，紧贴席位1头像上方 -->
           <div class='me-panel' :class='{ active: isMyTurn }'>
+            <div v-if='meSb || meBb' class='me-blind-tag'>{{ meSb ? 'SB' : 'BB' }}</div>
             <div class='me-cards'>
               <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
               <div v-if='dealerIsMe' class='table-dealer-chip me-dealer'>D</div>
@@ -234,6 +234,8 @@ const myKvSeat = computed<number>(() => {
 })
 
 const dealerIsMe = computed(() => players.value[dealerIdx.value]?.id === store.playerId)
+const meSb = computed(() => seats.value.find(s => s.isMe)?.sb === true)
+const meBb = computed(() => seats.value.find(s => s.isMe)?.bb === true)
 const isMyTurn = computed(() => {
   const g = game.value
   if (!g || g.stage === 'ended') return false
@@ -916,4 +918,25 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 <style>
 html, body { overscroll-behavior: none; }
+
+
+/* Blind tags (SB/BB) relocated per seat orientation */
+.blind-tag {
+  position: absolute;
+  font-size: 10px; font-weight: 800; padding: 1px 6px;
+  border-radius: 8px; background: #f5c518; color: #1a1e2e;
+  white-space: nowrap; z-index: 8;
+}
+.peer-hand .blind-tag { position: absolute; }
+.peer-hand.ph-seat-2 .blind-tag { left: 0; top: 50%; transform: translate(-110%, -50%) rotate(0deg); }
+.peer-hand.ph-seat-3 .blind-tag { left: 0; top: 50%; transform: translate(-110%, -50%) rotate(-90deg); }
+.peer-hand.ph-seat-4 .blind-tag,
+.peer-hand.ph-seat-5 .blind-tag { left: 50%; top: 100%; transform: translate(-50%, 40%) rotate(-180deg); }
+.peer-hand.ph-seat-6 .blind-tag { right: 0; top: 50%; transform: translate(110%, -50%) rotate(90deg); }
+
+.me-blind-tag {
+  position: absolute; left: 50%; top: -18px; transform: translate(-50%, -100%);
+  font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px;
+  background: #f5c518; color: #1a1e2e; z-index: 8; white-space: nowrap;
+}
 </style>
