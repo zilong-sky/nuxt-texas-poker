@@ -563,11 +563,11 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
-  position: absolute; left: 20px; right: 20px; top: 50%;
+  position: absolute; left: 76px; right: 76px; top: 50%;
   transform: translateY(-50%);
   height: clamp(200px, 40vh, 320px);
   width: auto;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 152px);
   margin: 0 auto;
 }
 .dealer-top {
