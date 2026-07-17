@@ -1,5 +1,5 @@
 <template>
-  <div class='game-page'>
+  <div class='game-page' :style="{ '--vvw': vvw + 'px', '--vvh': vvh + 'px' }">
     <!-- 左侧竖向功能栏：返回 + 系统时间 + 聊天 + 靶心 + BUFF -->
     <aside class='side-rail'>
       <button class='rail-btn back-btn' title='返回' @click='onBack'>
@@ -165,6 +165,14 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useIntervalFn } from '@vueuse/core'
 import { usePokerStore } from '~/stores/poker'
+
+const vvw = ref(typeof window !== 'undefined' ? window.innerWidth : 0)
+const vvh = ref(typeof window !== 'undefined' ? window.innerHeight : 0)
+function updateViewport() {
+  const vv = (typeof window !== 'undefined') ? window.visualViewport : null
+  vvw.value = vv ? vv.width : (typeof window !== 'undefined' ? window.innerWidth : 0)
+  vvh.value = vv ? vv.height : (typeof window !== 'undefined' ? window.innerHeight : 0)
+}
 
 // 常量字符串（避免模板中使用引号/反引号，方便通过 shell 写文件）
 const logLabelClose = '收起'
@@ -337,6 +345,16 @@ const clockText = computed(() => {
 })
 
 onMounted(async () => {
+  if (typeof window !== 'undefined') {
+    updateViewport()
+    const vv = window.visualViewport
+    if (vv) {
+      vv.addEventListener('resize', updateViewport)
+      vv.addEventListener('scroll', updateViewport)
+    }
+    window.addEventListener('resize', updateViewport)
+    window.addEventListener('orientationchange', updateViewport)
+  }
   store.loadClientState()
   if (!store.token) { await navigateTo('/'); return }
   if (!store.playerId) await store.reconnect()
@@ -362,7 +380,18 @@ if (import.meta.client) {
   })
 }
 
-onBeforeUnmount(() => { pause(); tick.pause() })
+onBeforeUnmount(() => {
+  pause(); tick.pause()
+  if (typeof window !== 'undefined') {
+    const vv = window.visualViewport
+    if (vv) {
+      vv.removeEventListener('resize', updateViewport)
+      vv.removeEventListener('scroll', updateViewport)
+    }
+    window.removeEventListener('resize', updateViewport)
+    window.removeEventListener('orientationchange', updateViewport)
+  }
+})
 
 async function doAction(a: string, amount?: number) {
   try { await store.action(a, amount) }
@@ -386,10 +415,10 @@ async function onBack() { await store.leave(); await navigateTo('/') }
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vh;
-    height: 100vw;
+    width: var(--vvh, 100vh);
+    height: var(--vvw, 100vw);
     transform-origin: top left;
-    transform: translate(100vw, 0) rotate(90deg);
+    transform: translate(var(--vvw, 100vw), 0) rotate(90deg);
     overflow: hidden;
     inset: auto;
   }
@@ -397,8 +426,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 @media (orientation: landscape) {
   .game-page {
     transform: none;
-    width: 100%;
-    height: 100%;
+    width: var(--vvw, 100%);
+    height: var(--vvh, 100%);
   }
 }
 
@@ -893,4 +922,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   .avatar-wrap { width: 46px; height: 46px; }
   .avatar { font-size: 15px; }
 }
+</style>
+
+<style>
+html, body { overscroll-behavior: none; }
 </style>
