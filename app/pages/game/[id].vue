@@ -931,7 +931,7 @@ html, body { overscroll-behavior: none; }
 .peer-hand.ph-seat-2 .blind-tag { left: 0; top: 50%; transform: translate(-110%, -50%) rotate(0deg); }
 .peer-hand.ph-seat-3 .blind-tag { left: 0; top: 50%; transform: translate(-110%, -50%) rotate(-90deg); }
 .peer-hand.ph-seat-4 .blind-tag,
-.peer-hand.ph-seat-5 .blind-tag { left: 50%; top: 100%; transform: translate(-50%, 40%) rotate(-180deg); }
+.peer-hand.ph-seat-5 .blind-tag { left: 50%; top: 0; transform: translate(-50%, -140%) rotate(-180deg); }
 .peer-hand.ph-seat-6 .blind-tag { right: 0; top: 50%; transform: translate(110%, -50%) rotate(90deg); }
 
 .me-blind-tag {
