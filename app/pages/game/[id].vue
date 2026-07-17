@@ -383,12 +383,22 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 /* Force landscape on portrait devices by rotating the whole page 90deg. */
 @media (orientation: portrait) {
   .game-page {
-    /* Rotate around viewport center so content stays fully inside the visible area. */
-    position: fixed; top: 50%; left: 50%;
-    width: 100dvh; height: 100dvw;
-    transform: translate(-50%, -50%) rotate(90deg);
-    transform-origin: center center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: top left;
+    transform: translate(100vw, 0) rotate(90deg);
+    overflow: hidden;
     inset: auto;
+  }
+}
+@media (orientation: landscape) {
+  .game-page {
+    transform: none;
+    width: 100%;
+    height: 100%;
   }
 }
 
