@@ -101,8 +101,7 @@
               </div>
             </div>
             <div class='chip-row'>
-              <span class='coin'>🪙</span>
-              <span class='chip-val'>{{ formatChips(s.player.chips) }}M</span>
+              <span class='chip-val'>{{ formatChips(s.player.chips) }}</span>
             </div>
             <div class='seat-tags'>
               <span v-if='s.sb' class='tag sb'>SB</span>
