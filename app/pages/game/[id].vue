@@ -700,12 +700,12 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 30%; top: 92%; transform: translate(-50%, -50%); }
-.seat-2 { left: 70%; top: 92%; transform: translate(-50%, -50%); }
-.seat-3 { left: 96%; top: 50%; transform: translate(-50%, -50%); }
-.seat-4 { left: 70%; top: 8%; transform: translate(-50%, -50%); }
-.seat-5 { left: 30%; top: 8%; transform: translate(-50%, -50%); }
-.seat-6 { left: 14%; top: 50%; transform: translate(-50%, -50%); }
+.seat-1 { left: 30%; top: 100%; transform: translate(-50%, -50%); }
+.seat-2 { left: 70%; top: 100%; transform: translate(-50%, -50%); }
+.seat-3 { left: 100%; top: 50%; transform: translate(0, -50%); }
+.seat-4 { left: 70%; top: 0; transform: translate(-50%, -100%); }
+.seat-5 { left: 30%; top: 0; transform: translate(-50%, -100%); }
+.seat-6 { left: 0; top: 50%; transform: translate(-100%, -50%); }
 
 .seat.active { filter: drop-shadow(0 0 6px rgba(245,197,24,.7)); }
 .seat.folded { opacity: .5; }
