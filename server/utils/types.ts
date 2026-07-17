@@ -52,6 +52,7 @@ export interface Room {
   players: Player[]
   createdAt: number
   emptyAt?: number
+  lastSeenAt?: number
   game?: Game
 }
 

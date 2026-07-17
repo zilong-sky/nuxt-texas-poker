@@ -65,6 +65,9 @@ export function readToken(event: H3Event, body?: any, tokenFromQuery?: string): 
 /** 5 分钟无操作视为死房间 */
 export const IDLE_LIMIT_MS = 5 * 60 * 1000
 
+/** waiting 房间 3 分钟无访问视为死房间 */
+export const WAITING_IDLE_MS = 3 * 60 * 1000
+
 /** 判断房间是否应被回收：无真人 或 开局后 5 分钟无操作 */
 export function isRoomDead(room: Room): boolean {
   const anyHuman = room.players.some(p => !p.isBot)
@@ -72,6 +75,9 @@ export function isRoomDead(room: Room): boolean {
   if (room.status === 'playing' && room.game) {
     const last = room.game.lastActionAt || 0
     if (last > 0 && Date.now() - last > IDLE_LIMIT_MS) return true
+  }
+  if (room.status === 'waiting' && room.lastSeenAt && Date.now() - room.lastSeenAt > WAITING_IDLE_MS) {
+    return true
   }
   return false
 }
@@ -84,5 +90,7 @@ export async function loadRoomOrCleanup(id: string): Promise<Room | null> {
     await deleteRoom(room)
     return null
   }
+  room.lastSeenAt = Date.now()
+  await saveRoom(room)
   return room
 }

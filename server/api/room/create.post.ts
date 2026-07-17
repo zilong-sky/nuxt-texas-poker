@@ -32,7 +32,8 @@ export default defineEventHandler(async (event) => {
     hostId: host.id,
     status: 'waiting',
     players: [host],
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    lastSeenAt: Date.now()
   }
   await saveRoom(room)
   await markRoomWaiting(roomId)

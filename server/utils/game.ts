@@ -40,6 +40,7 @@ function nextAliveIdx(room: Room, from: number): number {
 
 /** 开始新一局 */
 export function startNewHand(room: Room) {
+  room.lastSeenAt = Date.now()
   const alive = activePlayers(room)
   if (alive.length < 2) {
     room.status = 'ended'
