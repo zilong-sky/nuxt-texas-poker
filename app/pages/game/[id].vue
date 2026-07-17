@@ -701,8 +701,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #eef1fa;
   z-index: 3;
 }
-.seat-1 { left: 30%; top: 100%; transform: translate(-50%, -50%); }
-.seat-2 { left: 70%; top: 100%; transform: translate(-50%, -50%); }
+.seat-1 { left: 18%; top: 100%; transform: translate(-50%, -50%); }
+.seat-2 { left: 82%; top: 100%; transform: translate(-50%, -50%); }
 .seat-3 { left: 100%; top: 50%; transform: translate(0, -50%); }
 .seat-4 { left: 70%; top: 0; transform: translate(-50%, -100%); }
 .seat-5 { left: 30%; top: 0; transform: translate(-50%, -100%); }
@@ -808,7 +808,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 /* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
   position: absolute; left: 50%; top: 100%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.8);
+  transform-origin: center center;
   width: auto; max-width: 220px; min-width: 130px;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   padding: 4px 8px 6px; border-radius: 12px;
