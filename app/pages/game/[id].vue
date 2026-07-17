@@ -89,11 +89,8 @@
           <!-- 6 席位环形布局：席位1 = 玩家本人（下方左侧永久固定），仅头像+筹码，无名字 -->
           <div v-for='s in seats' :key='s.player.id' class='seat' :class='[seatPrefix + s.seatNo, { active: s.active, folded: s.player.folded, bust: s.player.bust, me: s.isMe, offline: s.player.offline }]'>
             <div class='avatar-wrap' :class='{ turn: s.active }'>
-              <svg v-if='s.active' class='timer-ring' viewBox='0 0 44 44'>
-                <circle class='ring-bg' cx='22' cy='22' r='20' />
-                <circle class='ring-fg' cx='22' cy='22' r='20' :stroke-dasharray='125.66' :stroke-dashoffset='125.66 * (1 - s.timerPct / 100)' />
-              </svg>
               <div class='avatar'>{{ initial(s.player.name) }}</div>
+              <div v-if='s.active' class='timer-mask' :class="[s.remaining <= 30 ? 'red' : 'yellow']" :style="{ '--pct': s.timerPct }"></div>
               <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
               <div v-if='!s.isMe && s.player.hand && s.player.hand.length' class='peer-hand' :class="'ph-seat-'+s.seatNo">
                 <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' class='peer-card' :class="'peer-card-'+ci" />
@@ -714,19 +711,25 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   display: flex; align-items: center; justify-content: center;
   border: 2px solid #f5c518;
 }
-.timer-ring {
-  position: absolute; inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px);
-  transform: rotate(-90deg);
+.timer-mask {
+  position: absolute; inset: 0; border-radius: 50%;
+  pointer-events: none; z-index: 4;
+  --deg: calc(var(--pct) * 3.6deg);
+  background: conic-gradient(from 0deg, var(--mask-color) 0deg, var(--mask-color) var(--deg), transparent var(--deg), transparent 360deg);
+  transform: scaleX(-1);
+  transition: background 0.3s linear;
 }
-.timer-ring .ring-bg { fill: none; stroke: rgba(255,255,255,.15); stroke-width: 3; }
-.timer-ring .ring-fg {
-  fill: none; stroke: #f5c518; stroke-width: 3; stroke-linecap: round;
-  transition: stroke-dashoffset .4s linear;
+.timer-mask.yellow { --mask-color: rgba(245, 197, 24, 0.55); }
+.timer-mask.red { --mask-color: rgba(220, 40, 40, 0.6); animation: timerBlink 2s ease-in-out infinite; }
+@keyframes timerBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 .timer-num {
   position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%);
   font-size: 10px; font-weight: 800; color: #f5c518;
   background: rgba(0,0,0,.55); padding: 1px 5px; border-radius: 8px;
+  z-index: 6;
 }
 
 .seat-name-row { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
