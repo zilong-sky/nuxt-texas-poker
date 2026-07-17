@@ -1,224 +1,172 @@
 <template>
-  <div class="game-page">
-    <!-- ????????? + ?? + ?? D + ??? + HOLD'EM ?? ??? .table ? -->
-    <!-- ??????? -->
-    <aside class="side-rail">
-      <button class="rail-btn back-btn" title="??" @click="onBack">
-        <span class="arrow">?</span>
+  <div class='game-page'>
+    <!-- 左侧竖向功能栏：返回 + 系统时间 + 聊天 + 靶心 + BUFF -->
+    <aside class='side-rail'>
+      <button class='rail-btn back-btn' title='返回' @click='onBack'>
+        <span class='arrow'>←</span>
       </button>
-      <div class="rail-time">{{ clockText }}</div>
-      <button class="rail-btn chat-btn" title="??" @click="chatOpen = !chatOpen">
-        <span class="ico">??</span>
+      <div class='rail-time'>{{ clockText }}</div>
+      <button class='rail-btn chat-btn' title='聊天' @click='chatOpen = !chatOpen'>
+        <span class='ico'>💬</span>
       </button>
-      <button class="rail-btn target-btn" title="??">
-        <span class="ico-target"></span>
+      <button class='rail-btn target-btn' title='靶心'>
+        <span class='ico-target'></span>
       </button>
-      <button class="rail-btn buff-btn" title="BUFF">
-        <span class="buff-line1">BUFF</span>
-        <span class="buff-line2">5% ? 1X</span>
+      <button class='rail-btn buff-btn' title='BUFF'>
+        <span class='buff-line1'>BUFF</span>
+        <span class='buff-line2'>5% · 1X</span>
       </button>
     </aside>
 
-    <!-- ?????? -->
-    <section class="log-rail" :class="{ open: logOpen }">
-      <button class="log-toggle" @click="logOpen = !logOpen">{{ logOpen ? '?' : '??' }}</button>
-      <div v-if="logOpen" class="log-list">
-        <div v-for="(l, i) in logList" :key="i" class="log-item">? {{ l }}</div>
-        <div v-if="!logList.length" class="log-item small">????</div>
+    <!-- 右侧竖向操作日志滚动区 -->
+    <section class='log-rail' :class='{ open: logOpen }'>
+      <button class='log-toggle' @click='logOpen = !logOpen'>{{ logOpen ? logLabelClose : logLabelOpen }}</button>
+      <div v-if='logOpen' class='log-list'>
+        <div v-for='(l, i) in logList' :key='i' class='log-item'>• {{ l }}</div>
+        <div v-if='!logList.length' class='log-item small'>暂无日志</div>
       </div>
     </section>
 
-    <div v-if="!room || !room.game" class="loading">????</div>
+    <div v-if='!room || !room.game' class='loading'>加载中…</div>
 
     <template v-else>
-      <!-- ???????? + ???? -->
-      <div class="lounge">
-        <!-- ????? -->
-        <div class="window-scene">
-          <div class="cityscape"></div>
-          <div class="skyline"></div>
-          <div class="curtain left"></div>
-          <div class="curtain right"></div>
+      <!-- 包厢背景：夜景窗户 + 窗帘 + 沙发 + 地毯 -->
+      <div class='lounge'>
+        <div class='window-scene'>
+          <div class='cityscape'></div>
+          <div class='skyline'></div>
+          <div class='curtain left'></div>
+          <div class='curtain right'></div>
         </div>
-        <!-- ??/??/?? ?? -->
-        <div class="lounge-sofa left"></div>
-        <div class="lounge-sofa right"></div>
-        <div class="lounge-floor"></div>
+        <div class='lounge-sofa left'></div>
+        <div class='lounge-sofa right'></div>
+        <div class='lounge-floor'></div>
 
-        <div class="table-wrap">
-          <!-- ?????????? -->
-          <div class="dealer-top">
-            <div class="dealer-avatar" aria-label="dealer">
-              <div class="dealer-hair"></div>
-              <div class="dealer-face">
-                <div class="eye left"></div>
-                <div class="eye right"></div>
-                <div class="mouth"></div>
+        <div class='table-wrap'>
+          <div class='dealer-top'>
+            <div class='dealer-avatar' aria-label='dealer'>
+              <div class='dealer-hair'></div>
+              <div class='dealer-face'>
+                <div class='eye left'></div>
+                <div class='eye right'></div>
+                <div class='mouth'></div>
               </div>
-              <div class="dealer-body"></div>
+              <div class='dealer-body'></div>
             </div>
           </div>
 
-          <div class="table">
-            <div class="table-inner">
-              <div class="table-watermark">HOLD'EM</div>
-              <!-- ???? -->
-              <div class="community">
-                <PokerCard
-                  v-for="i in 5"
-                  :key="i"
-                  :card="community[i - 1] || null"
-                  :face="!!community[i - 1]"
-                  size="normal"
-                  class="board-card"
-                />
+          <div class='table'>
+            <div class='table-inner'>
+              <div class='table-watermark'>{{ watermark }}</div>
+              <div class='community'>
+                <PokerCard v-for='i in 5' :key='i' :card='community[i - 1] || null' :face='!!community[i - 1]' size='normal' class='board-card' />
               </div>
-              <!-- ?? + ?? D -->
-              <div class="pot-row">
-                <div class="dealer-chip">D</div>
-                <div class="pot-info">
-                  <div class="pot-label">??</div>
-                  <div class="pot-amount">{{ formatChips(pot) }}</div>
+              <div class='pot-row'>
+                <div class='dealer-chip'>D</div>
+                <div class='pot-info'>
+                  <div class='pot-label'>底池</div>
+                  <div class='pot-amount'>{{ formatChips(pot) }}</div>
                 </div>
               </div>
-              <div class="stage-tag">{{ stageLabel }}</div>
-              <div v-if="winners.length" class="winners">
-                <div v-for="w in winners" :key="w.playerId" class="winner-line">
+              <div class='stage-tag'>{{ stageLabel }}</div>
+              <div v-if='winners.length' class='winners'>
+                <div v-for='w in winners' :key='w.playerId' class='winner-line'>
                   <strong>{{ playerName(w.playerId) }}</strong>
                   <span>+{{ formatChips(w.amount) }}</span>
-                  <span v-if="w.hand" class="small">?{{ w.hand }}?</span>
+                  <span v-if='w.hand' class='small'>「{{ w.hand }}」</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 6 ????? -->
-          <div
-            v-for="s in seats"
-            :key="s.player.id"
-            class="seat"
-            :class="[
-              'seat-' + s.seatNo,
-              { active: s.active, folded: s.player.folded, bust: s.player.bust, me: s.isMe, offline: s.player.offline }
-            ]"
-          >
-            <!-- ??????? -->
-            <div v-if="!s.isMe" class="seat-cards">
-              <PokerCard
-                v-for="(c, ci) in otherHand(s.player)"
-                :key="ci"
-                :card="c"
-                :face="revealStage && !!c"
-                size="mini"
-              />
-              <div v-if="!revealStage && s.player.hand && s.player.hand.length" class="hand-mask">
-                ??????
-              </div>
+          <!-- 6 席位环形布局：席位1 = 玩家本人（下方左侧永久固定） -->
+          <div v-for='s in seats' :key='s.player.id' class='seat' :class='[seatPrefix + s.seatNo, { active: s.active, folded: s.player.folded, bust: s.player.bust, me: s.isMe, offline: s.player.offline }]'>
+            <div v-if='!s.isMe' class='seat-cards'>
+              <PokerCard v-for='(c, ci) in otherHand(s.player)' :key='ci' :card='c' :face='revealStage && !!c' size='mini' />
+              <div v-if='!revealStage && s.player.hand && s.player.hand.length' class='hand-mask'>暂时无法查看</div>
             </div>
-
-            <div class="avatar-wrap" :class="{ turn: s.active }">
-              <svg v-if="s.active" class="timer-ring" viewBox="0 0 44 44">
-                <circle class="ring-bg" cx="22" cy="22" r="20" />
-                <circle
-                  class="ring-fg"
-                  cx="22"
-                  cy="22"
-                  r="20"
-                  :stroke-dasharray="125.66"
-                  :stroke-dashoffset="125.66 * (1 - s.timerPct / 100)"
-                />
+            <div class='avatar-wrap' :class='{ turn: s.active }'>
+              <svg v-if='s.active' class='timer-ring' viewBox='0 0 44 44'>
+                <circle class='ring-bg' cx='22' cy='22' r='20' />
+                <circle class='ring-fg' cx='22' cy='22' r='20' :stroke-dasharray='125.66' :stroke-dashoffset='125.66 * (1 - s.timerPct / 100)' />
               </svg>
-              <div class="avatar">{{ initial(s.player.name) }}</div>
-              <div class="gift-icon" title="??">??</div>
-              <div v-if="s.dealer" class="dealer-badge">D</div>
-              <div v-if="s.active" class="timer-num">{{ s.remaining }}</div>
+              <div class='avatar'>{{ initial(s.player.name) }}</div>
+              <div class='gift-icon' title='礼物'>🎁</div>
+              <div v-if='s.dealer' class='dealer-badge'>D</div>
+              <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
             </div>
-
-            <div class="seat-name-row">
-              <span class="seat-name">{{ s.player.name }}</span>
-              <span v-if="s.player.isBot" class="tag bot">Bot</span>
+            <div class='seat-name-row'>
+              <span class='seat-name'>{{ s.player.name }}</span>
+              <span v-if='s.player.isBot' class='tag bot'>Bot</span>
             </div>
-
-            <div class="chip-row">
-              <span class="coin">?</span>
-              <span class="chip-val">{{ formatChips(s.player.chips) }}</span>
+            <div class='chip-row'>
+              <span class='coin'>🪙</span>
+              <span class='chip-val'>{{ formatChips(s.player.chips) }}M</span>
             </div>
-
-            <div class="seat-tags">
-              <span v-if="s.sb" class="tag sb">SB</span>
-              <span v-if="s.bb" class="tag bb">BB</span>
-              <span v-if="s.player.folded" class="tag fold">??</span>
-              <span v-if="s.player.allIn" class="tag allin">??</span>
-              <span v-if="s.player.bust" class="tag fold">??</span>
+            <div class='seat-tags'>
+              <span v-if='s.sb' class='tag sb'>SB</span>
+              <span v-if='s.bb' class='tag bb'>BB</span>
+              <span v-if='s.player.folded' class='tag fold'>弃牌</span>
+              <span v-if='s.player.allIn' class='tag allin'>全下</span>
+              <span v-if='s.player.bust' class='tag fold'>出局</span>
             </div>
-
-            <!-- ?????? -->
-            <div v-if="s.player.bet > 0" class="seat-bet">
-              <span class="coin">?</span>
+            <!-- 已下注/全下时展示红色牌背 -->
+            <div v-if='s.player.bet > 0 || s.player.allIn' class='bet-cards' :class='{ allin: s.player.allIn }'>
+              <span class='red-back'></span>
+              <span class='red-back offset'></span>
+            </div>
+            <div v-if='s.player.bet > 0' class='seat-bet'>
+              <span class='coin'>🪙</span>
               <span>{{ formatChips(s.player.bet) }}</span>
             </div>
           </div>
 
-          <!-- ?????1??????+???+????? -->
-          <div class="me-panel" :class="{ active: isMyTurn }">
-            <div class="me-cards">
-              <PokerCard
-                v-for="(c, ci) in myHand"
-                :key="ci"
-                :card="c"
-                :face="!!c"
-                size="big"
-              />
+          <!-- 玩家本人（席位1）底牌 + 牌型 + 胜率进度条 -->
+          <div class='me-panel' :class='{ active: isMyTurn }'>
+            <div class='me-cards'>
+              <PokerCard v-for='(c, ci) in myHand' :key='ci' :card='c' :face='!!c' size='big' />
             </div>
-            <div class="me-rank">{{ me?.handRank || handTypeHint || '?' }}</div>
-            <div class="me-win">
-              <div class="me-win-bar">
-                <div class="me-win-fill" :style="{ width: winRatePct + '%' }"></div>
+            <div class='me-rank'>{{ meHandRankText }}</div>
+            <div class='me-win'>
+              <div class='me-win-bar'>
+                <div class='me-win-fill' :style='{ width: winRatePct + pctSuffix }'></div>
               </div>
-              <div class="me-win-text">?? {{ winRatePct }}%</div>
+              <div class='me-win-text'>胜率 {{ winRatePct }}%</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ???? 4 ?? -->
-      <footer class="action-bar">
-        <button
-          class="act-btn"
-          :disabled="!isMyTurn || game.stage === 'ended'"
-          @click="doAction('fold')"
-        >??</button>
-        <button
-          class="act-btn"
-          :disabled="!isMyTurn || game.stage === 'ended'"
-          @click="doAction(canCheck ? 'check' : 'fold')"
-        >{{ canCheck ? '??' : '??/??' }}</button>
-        <button
-          class="act-btn"
-          :disabled="!isMyTurn || !canCheck || game.stage === 'ended'"
-          @click="doAction('check')"
-        >??</button>
-        <button
-          class="act-btn primary"
-          :disabled="!isMyTurn || game.stage === 'ended'"
-          @click="doAction(canCheck ? 'check' : 'call')"
-        >{{ canCheck ? '????' : `? ${formatChips(toCall)}` }}</button>
+      <!-- 底部操作 4 按钮 -->
+      <footer class='action-bar'>
+        <button class='act-btn' :disabled='foldDisabled' @click='doAction(actFold)'>弃牌</button>
+        <button class='act-btn' :disabled='foldDisabled' @click='doAction(canCheck ? actCheck : actFold)'>{{ canCheck ? checkLabel : checkFoldLabel }}</button>
+        <button class='act-btn' :disabled='checkDisabled' @click='doAction(actCheck)'>过牌</button>
+        <button class='act-btn primary' :disabled='foldDisabled' @click='doAction(canCheck ? actCheck : actCall)'>{{ callBtnLabel }}</button>
       </footer>
     </template>
 
-    <p v-if="err" class="err">{{ err }}</p>
+    <p v-if='err' class='err'>{{ err }}</p>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang='ts'>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useIntervalFn } from '@vueuse/core'
 import { usePokerStore } from '~/stores/poker'
 
-/**
- * ?????????? CHANGE_REQUEST ???? 6 ??????????????? 4 ???
- * ?? 1 ????????????? KV ?? seat index ?????????????? 2?6?
- */
+// 常量字符串（避免模板中使用引号/反引号，方便通过 shell 写文件）
+const logLabelClose = '收起'
+const logLabelOpen = '日志'
+const watermark = 'HOLD' + String.fromCharCode(39) + 'EM'
+const seatPrefix = 'seat-'
+const pctSuffix = '%'
+const actFold = 'fold'
+const actCheck = 'check'
+const actCall = 'call'
+const checkLabel = '过牌'
+const checkFoldLabel = '过牌/弃牌'
+
 const route = useRoute()
 const roomId = route.params.id as string
 const store = usePokerStore()
@@ -230,8 +178,8 @@ const now = ref(Date.now())
 const logOpen = ref(false)
 const chatOpen = ref(false)
 
-// ??? 1..6 ?????????1 ??, 2 ??, 3 ??, 4 ??(????), 5 ??(????), 6 ??
-// ????: 0=?? -> ??1?1..5 ??? -> ?? 2,3,4,5,6
+// 席位 1..6 环形分布：席位 1 = 玩家本人（下方左侧永久固定）
+// 顺时针填充：偏移 0 -> 席位1；1..5 -> 席位 2,3,4,5,6
 const OFFSET_TO_SEAT = [1, 2, 3, 4, 5, 6]
 
 const game = computed<any>(() => room.value?.game)
@@ -287,10 +235,13 @@ const isMyTurn = computed(() => {
 const toCall = computed(() => Math.max(0, (game.value?.currentBet || 0) - (me.value?.bet || 0)))
 const canCheck = computed(() => toCall.value === 0)
 
-/**
- * 6 ?????????????? 1??????? KV ?? seat index?
- * ????? (kvSeat - myKvSeat) mod maxSeats ??????????? 2..6?
- */
+const foldDisabled = computed(() => !isMyTurn.value || game.value?.stage === 'ended')
+const checkDisabled = computed(() => !isMyTurn.value || !canCheck.value || game.value?.stage === 'ended')
+const callBtnLabel = computed(() => {
+  if (canCheck.value) return '跟任意注'
+  return '跟 ' + formatChips(toCall.value)
+})
+
 const seats = computed(() => {
   const ps = players.value
   if (!ps.length || myKvSeat.value < 0) return []
@@ -302,9 +253,7 @@ const seats = computed(() => {
     const seatNo = OFFSET_TO_SEAT[Math.min(offset, 5)]
     const active = i === actionIdx.value && game.value?.stage !== 'ended'
     out.push({
-      player: p,
-      seatNo,
-      idx: i,
+      player: p, seatNo, idx: i,
       isMe: p.id === store.playerId,
       active,
       dealer: i === dealerIdx.value,
@@ -327,18 +276,17 @@ function otherHand(p: any) {
   return [null, null]
 }
 
-/** ???????????????????????????? */
 const handTypeHint = computed(() => {
   const h = myHand.value
   if (!h[0] || !h[1]) return ''
   const r1 = h[0].rank, r2 = h[1].rank
   const s1 = h[0].suit, s2 = h[1].suit
-  if (r1 === r2) return '??'
-  if (s1 === s2) return '???'
-  return '??'
+  if (r1 === r2) return '口袋对子'
+  if (s1 === s2) return '同花两张'
+  return '高牌'
 })
+const meHandRankText = computed(() => me.value?.handRank || handTypeHint.value || '—')
 
-/** ???????????????????????? */
 const winRatePct = computed(() => {
   const h = myHand.value
   if (!h[0] || !h[1]) return 0
@@ -369,12 +317,11 @@ function formatChips(v: any) {
   return String(x)
 }
 
-/** ????????? */
 const clockText = computed(() => {
   const d = new Date(now.value)
   const hh = String(d.getHours()).padStart(2, '0')
   const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${hh}:${mm}`
+  return hh + ':' + mm
 })
 
 onMounted(async () => {
@@ -387,7 +334,7 @@ onMounted(async () => {
 async function refresh() {
   try {
     await store.fetchState(roomId)
-    if (store.room?.status === 'waiting') await navigateTo(`/room/${roomId}`)
+    if (store.room?.status === 'waiting') await navigateTo('/room/' + roomId)
   } catch (e: any) {
     err.value = e?.statusMessage || 'load failed'
   }
@@ -419,10 +366,10 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   display: flex; flex-direction: column;
   color: var(--text);
   background: #0a0d14;
-  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-/* ---------- ??????? ---------- */
+/* ---------- 左侧竖向功能栏 ---------- */
 .side-rail {
   position: absolute; left: 6px; top: 6px; bottom: 96px;
   display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -457,9 +404,9 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   background: rgba(0,0,0,.35); padding: 2px 6px; border-radius: 6px;
 }
 
-/* ---------- ???? ---------- */
+/* ---------- 右侧操作日志 ---------- */
 .log-rail {
-  position: absolute; right: 4px; top: 8px; bottom: 96px; width: 22px;
+  position: absolute; right: 4px; top: 8px; bottom: 96px; width: 24px;
   display: flex; flex-direction: column; align-items: flex-end; z-index: 15;
 }
 .log-rail.open { width: 46vw; max-width: 260px; }
@@ -476,7 +423,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .log-item { font-size: 11px; color: #cfd6ee; padding: 2px 0; line-height: 1.35; }
 .log-item.small { color: #7a819a; }
 
-/* ---------- ???? ---------- */
+/* ---------- 包厢背景 ---------- */
 .lounge {
   position: relative; flex: 1 1 auto;
   background:
@@ -491,7 +438,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   overflow: hidden;
 }
 .window-scene::before, .window-scene::after {
-  content: ""; position: absolute; top: 0; bottom: 0; width: 3px; background: #1a1010;
+  content: ''; position: absolute; top: 0; bottom: 0; width: 3px; background: #1a1010;
 }
 .window-scene::before { left: 50%; }
 .cityscape {
@@ -540,10 +487,9 @@ async function onBack() { await store.leave(); await navigateTo('/') }
     repeating-linear-gradient(0deg, #1a0d0a 0 12px, #0e0705 12px 24px);
 }
 
-/* ---------- ?? ---------- */
+/* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
   position: absolute; inset: 6% 6% 4% 6%;
-  display: block;
 }
 .dealer-top {
   position: absolute; left: 50%; top: 4%; transform: translate(-50%, -40%);
@@ -581,7 +527,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   border-top: 3px solid #d92626;
 }
 .dealer-body::before {
-  content: ""; position: absolute; left: 50%; top: 4px; transform: translateX(-50%);
+  content: ''; position: absolute; left: 50%; top: 4px; transform: translateX(-50%);
   width: 6px; height: 12px; background: #f5c518; border-radius: 3px;
 }
 
@@ -606,7 +552,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   position: absolute; left: 0; right: 0; top: 46%; transform: translateY(-50%);
   text-align: center; color: rgba(180,200,255,.10);
   font-size: 42px; font-weight: 900; letter-spacing: 12px; pointer-events: none;
-  font-family: "Georgia", serif;
+  font-family: 'Georgia', serif;
 }
 .community {
   display: flex; gap: 6px; align-items: center; justify-content: center;
@@ -637,7 +583,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .winner-line { padding: 1px 0; }
 .winner-line .small { color: #cfd6ee; }
 
-/* ---------- ????? 6 ?? ---------- */
+/* ---------- 席位（6 席环形） ---------- */
 .seat {
   position: absolute; width: 22%; max-width: 96px; min-width: 74px;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -656,9 +602,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 .seat.bust { opacity: .35; }
 .seat.offline { filter: grayscale(.6); }
 
-.avatar-wrap {
-  position: relative; width: 54px; height: 54px;
-}
+.avatar-wrap { position: relative; width: 54px; height: 54px; }
 .avatar {
   position: absolute; inset: 3px; border-radius: 50%;
   background: linear-gradient(160deg, #3f2a86, #1a1230);
@@ -689,9 +633,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   position: absolute; inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px);
   transform: rotate(-90deg);
 }
-.timer-ring .ring-bg {
-  fill: none; stroke: rgba(255,255,255,.15); stroke-width: 3;
-}
+.timer-ring .ring-bg { fill: none; stroke: rgba(255,255,255,.15); stroke-width: 3; }
 .timer-ring .ring-fg {
   fill: none; stroke: #f5c518; stroke-width: 3; stroke-linecap: round;
   transition: stroke-dashoffset .4s linear;
@@ -711,7 +653,7 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   border: 1px solid rgba(245,197,24,.4);
   font-size: 12px; color: #f5c518; font-weight: 800;
 }
-.chip-row .coin { color: #ffe680; font-size: 12px; }
+.chip-row .coin { font-size: 12px; }
 
 .seat-tags { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; justify-content: center; }
 .tag {
@@ -733,14 +675,32 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   font-size: 9px; color: #cfd6ee; background: rgba(0,0,0,.55);
   padding: 1px 4px; border-radius: 4px; white-space: nowrap;
 }
+
+/* 已下注：红色牌背标记（席位侧） */
+.bet-cards {
+  position: absolute; top: -6px; right: -18px;
+  display: flex; z-index: 4; pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.55));
+}
+.bet-cards .red-back {
+  width: 14px; height: 20px; border-radius: 3px;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.14) 0 3px, transparent 3px 6px),
+    linear-gradient(135deg, #d21f3c, #6a0a1c);
+  border: 1px solid #3a0a12;
+  box-shadow: inset 0 0 4px rgba(255,255,255,.15);
+}
+.bet-cards .red-back.offset { margin-left: -8px; transform: rotate(10deg); }
+.bet-cards.allin .red-back { box-shadow: 0 0 6px rgba(255, 80, 80, .8); }
 .seat-bet {
-  position: absolute; top: -14px; right: -8px;
+  position: absolute; top: 12px; right: -16px;
   display: inline-flex; align-items: center; gap: 3px;
-  background: rgba(0,0,0,.6); border: 1px solid #f5c518; border-radius: 10px;
+  background: rgba(0,0,0,.7); border: 1px solid #f5c518; border-radius: 10px;
   padding: 1px 6px; font-size: 10px; color: #f5c518; font-weight: 800;
+  z-index: 5;
 }
 
-/* ---------- ????????? + ?? + ?? ---------- */
+/* ---------- 玩家本人（席位1）面板 ---------- */
 .me-panel {
   position: absolute; left: 2%; bottom: -2%;
   width: 46%; max-width: 220px;
@@ -757,21 +717,20 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   50% { box-shadow: 0 0 0 6px rgba(245,197,24,0); }
 }
 .me-cards { display: flex; gap: 6px; }
-.me-rank {
-  font-size: 12px; font-weight: 800; color: #f5c518; letter-spacing: 1px;
-}
+.me-rank { font-size: 12px; font-weight: 800; color: #f5c518; letter-spacing: 1px; }
 .me-win { width: 100%; }
 .me-win-bar {
   height: 6px; border-radius: 4px; background: rgba(255,255,255,.12); overflow: hidden;
   border: 1px solid rgba(255,255,255,.15);
 }
 .me-win-fill {
-  height: 100%; background: linear-gradient(90deg, #4dd0e1, #f5c518);
+  height: 100%;
+  background: linear-gradient(90deg, #4dd0e1 0%, #7bfdd0 40%, #f5c518 80%, #ff6a3d 100%);
   transition: width .4s ease;
 }
 .me-win-text { font-size: 10px; color: #cfd6ee; text-align: right; margin-top: 1px; }
 
-/* ---------- ???? 4 ?? ---------- */
+/* ---------- 底部动作按钮 ---------- */
 .action-bar {
   flex: 0 0 auto;
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
@@ -806,7 +765,6 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   color: #cfd6ee; font-size: 14px;
 }
 
-/* ???? */
 @media (max-width: 380px) {
   .table-watermark { font-size: 32px; letter-spacing: 8px; }
   .act-btn { font-size: 13px; height: 42px; }
