@@ -1,7 +1,7 @@
 <template>
   <div class='game-page' :style="{ '--vvw': vvw + 'px', '--vvh': vvh + 'px' }">
     <!-- 左侧竖向功能栏：返回 + 系统时间 + 聊天 + 靶心 + BUFF -->
-    <aside class='side-rail'>
+    <div class='top-rail'>
       <button class='rail-btn back-btn' title='返回' @click='onBack'>
         <span class='arrow'>←</span>
       </button>
@@ -9,6 +9,8 @@
       <button class='rail-btn chat-btn' title='聊天' @click='chatOpen = !chatOpen'>
         <span class='ico'>💬</span>
       </button>
+    </div>
+    <div class='bottom-rail'>
       <button class='rail-btn target-btn' title='靶心'>
         <span class='ico-target'></span>
       </button>
@@ -16,7 +18,7 @@
         <span class='buff-line1'>BUFF</span>
         <span class='buff-line2'>5% · 1X</span>
       </button>
-    </aside>
+    </div>
 
     <!-- 右侧竖向操作日志滚动区 -->
     <section class='log-rail' :class='{ open: logOpen }'>
@@ -433,14 +435,17 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 
 /* ---------- 左侧竖向功能栏 ---------- */
-.side-rail {
-  position: absolute; left: 2px; top: 6px; bottom: 96px;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  z-index: 20; padding: 4px 0;
-  pointer-events: none;
-  background: transparent;
+.top-rail {
+  position: absolute; left: 8px; top: 8px;
+  display: flex; flex-direction: row; align-items: center; gap: 8px;
+  z-index: 20;
 }
-.side-rail > * { pointer-events: auto; }
+.bottom-rail {
+  position: absolute; left: 8px; bottom: 8px;
+  display: flex; flex-direction: row; align-items: center; gap: 8px;
+  z-index: 20;
+}
+.top-rail .rail-btn, .bottom-rail .rail-btn { background: rgba(0,0,0,.35); }
 .rail-btn {
   width: 36px; height: 36px; border-radius: 10px; border: none; color: #fff;
   display: flex; align-items: center; justify-content: center;
@@ -558,11 +563,11 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 
 /* ---------- 桌面 & 荷官 ---------- */
 .table-wrap {
-  position: absolute; left: 80px; right: 40px; top: 50%;
+  position: absolute; left: 20px; right: 20px; top: 50%;
   transform: translateY(-50%);
   height: clamp(200px, 40vh, 320px);
   width: auto;
-  max-width: calc(100% - 120px);
+  max-width: calc(100% - 40px);
   margin: 0 auto;
 }
 .dealer-top {
