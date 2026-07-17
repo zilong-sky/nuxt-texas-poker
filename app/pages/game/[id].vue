@@ -18,7 +18,7 @@
         <div class="table">
           <div class="dealer">
             <div class="dealer-avatar">🎩</div>
-            <div class="dealer-label">荷官</div>
+            <div class="dealer-label">发牌员</div>
           </div>
           <div class="community">
             <PokerCard v-for="i in 5" :key="i" :card="community[i - 1] || null" :face="true" size="normal" />
@@ -74,13 +74,15 @@
         </div>
       </div>
 
-      <div class="bottom-zone">
-        <div v-if="me" class="me-seat" :class="{ active: isMyTurn }">
-          <div class="me-cards">
-            <PokerCard v-for="(c, ci) in myHand" :key="ci" :card="c" :face="true" size="big" />
-          </div>
+      <div v-if="me" class="me-hand-center" :class="{ active: isMyTurn }">
+        <div class="me-cards">
+          <PokerCard v-for="(c, ci) in myHand" :key="ci" :card="c" :face="true" size="big" />
         </div>
+        <div v-if="me?.handRank" class="me-hand-rank">{{ me.handRank }}</div>
+        <div v-else class="me-hand-rank">—</div>
+      </div>
 
+      <div class="bottom-zone">
         <div class="action-area">
           <template v-if="isMyTurn && room.game.stage !== 'ended'">
             <button class="btn-fold" @click="doAction('fold')">弃牌</button>
@@ -449,4 +451,56 @@ async function leave() { await store.leave(); await navigateTo('/') }
 }
 .me-seat { flex-direction: column; gap: 4px; }
 .me-cards { gap: 8px; }
+
+
+/* --- CHANGE_REQUEST: hole cards centered below table --- */
+.me-hand-center {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+  pointer-events: none;
+}
+.me-hand-center .me-cards { display: flex; gap: 8px; }
+.me-hand-rank {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  letter-spacing: 1px;
+}
+.me-hand-center.active { animation: seatPulse 1.2s infinite; border-radius: 12px; padding: 2px 6px; }
+
+/* female dealer avatar bg */
+.dealer-avatar {
+  background: linear-gradient(135deg, #fbeee0, #d9b892) !important;
+}
+
+/* shrink seat-5 (self) */
+.seat-5 { transform: scale(.9); transform-origin: bottom left; }
+
+/* --- CHANGE_REQUEST: blue rectangular action buttons --- */
+.action-area button.btn-fold,
+.action-area button.btn-call,
+.action-area button.btn-raise,
+.action-area button.btn-allin {
+  background: linear-gradient(180deg, #4f7ce8, #2a4fb8) !important;
+  color: #fff !important;
+  border: 1px solid #6b93ff !important;
+  border-radius: 6px !important;
+  min-width: 90px;
+  min-height: 48px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.2) !important;
+}
+.action-area .btn-fold {
+  background: linear-gradient(180deg, #e74c3c, #b03729) !important;
+  border-color: #ff8a7a !important;
+}
+
 </style>
