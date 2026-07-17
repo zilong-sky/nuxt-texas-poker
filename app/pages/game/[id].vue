@@ -851,8 +851,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 /* 席位方向：容器整体旋转使牌背朝向该玩家；置于头像内侧(桌内)且留小间距 */
 .peer-hand.ph-seat-2 { left: 50%; top: auto; bottom: 100%; margin-bottom: 8px; transform: translate(-50%, 0) rotate(0deg); }
 .peer-hand.ph-seat-3 { left: auto; right: 100%; top: 50%; margin-right: 8px; transform: translate(0, -50%) rotate(90deg); }
-.peer-hand.ph-seat-4 { left: 50%; top: 100%; margin-top: 8px; transform: translate(-50%, 0) rotate(180deg); }
-.peer-hand.ph-seat-5 { left: 50%; top: 100%; margin-top: 8px; transform: translate(-50%, 0) rotate(180deg); }
+.peer-hand.ph-seat-4 { left: 50%; top: 100%; margin-top: 44px; transform: translate(-50%, 0) rotate(180deg); }
+.peer-hand.ph-seat-5 { left: 50%; top: 100%; margin-top: 44px; transform: translate(-50%, 0) rotate(180deg); }
 .peer-hand.ph-seat-6 { left: 100%; top: 50%; margin-left: 8px; transform: translate(0, -50%) rotate(-90deg); }
 .table-dealer-chip {
   position: absolute; left: 100%; top: 50%; transform: translate(4px, -50%);
