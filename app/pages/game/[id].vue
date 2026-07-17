@@ -27,7 +27,7 @@
       </div>
     </section>
 
-    <div v-if='!room || !room.game' class='loading'>加载中…</div>
+    <div v-if='!room || !room.game' class='loading' role='status'>加载中…(Loading)</div>
 
     <template v-else>
       <!-- 包厢背景：夜景窗户 + 窗帘 + 沙发 + 地毯 -->
@@ -352,7 +352,7 @@ async function refresh() {
   }
 }
 
-const { pause, resume } = useIntervalFn(refresh, 3000, { immediate: true })
+const { pause, resume } = useIntervalFn(refresh, 2000, { immediate: true })
 const tick = useIntervalFn(() => { now.value = Date.now() }, 500, { immediate: true })
 
 if (import.meta.client) {
@@ -383,10 +383,11 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 /* Force landscape on portrait devices by rotating the whole page 90deg. */
 @media (orientation: portrait) {
   .game-page {
-    position: fixed; top: 0; left: 100dvw;
+    /* Rotate around viewport center so content stays fully inside the visible area. */
+    position: fixed; top: 50%; left: 50%;
     width: 100dvh; height: 100dvw;
-    transform: rotate(90deg);
-    transform-origin: top left;
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center center;
     inset: auto;
   }
 }
@@ -872,7 +873,8 @@ async function onBack() { await store.leave(); await navigateTo('/') }
 }
 .loading {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  color: #cfd6ee; font-size: 14px;
+  color: #ffffff; font-size: 16px; font-weight: 700; letter-spacing: 1px;
+  background: #0a0d14; z-index: 50;
 }
 
 @media (max-width: 380px) {
