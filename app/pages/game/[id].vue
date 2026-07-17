@@ -571,12 +571,13 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   margin: 0 auto;
 }
 .dealer-top {
-  position: absolute; left: 50%; top: 8%; transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: 0; transform: translate(-50%, -100%);
   z-index: 6; pointer-events: none;
 }
 .dealer-avatar {
   width: 78px; height: 92px; position: relative;
   filter: drop-shadow(0 8px 12px rgba(0,0,0,.55));
+  transform: scale(0.7); transform-origin: bottom center;
 }
 .dealer-hair {
   position: absolute; left: 12px; right: 12px; top: 0; height: 44px;
