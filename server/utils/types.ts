@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 类型定义与共享常量。常量从 config.ts 转出。
  */
 export { INITIAL_CHIPS, SMALL_BLIND, BIG_BLIND, MAX_PLAYERS, ACTION_TIMEOUT_MS } from './config'
@@ -40,6 +40,7 @@ export interface Game {
   dealerIdx: number
   actionIdx: number
   actionDeadline: number
+  lastActionAt: number
   log: string[]
   winners?: { playerId: string; amount: number; hand?: string }[]
 }

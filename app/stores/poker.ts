@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 
 /**
  * 全局房间状态：昵称、token、房间信息、动作、断线重连。
@@ -35,6 +35,21 @@ export const usePokerStore = defineStore('poker', {
     clearToken() {
       this.token = ''
       if (import.meta.client) localStorage.removeItem('pokerToken')
+    },
+
+    _handleFatal(e: any): boolean {
+      const code = e?.statusMessage || e?.data?.statusMessage
+      const status = e?.statusCode || e?.response?.status || e?.status
+      const fatal = code === 'ROOM_NOT_FOUND' || code === 'INVALID_TOKEN' || code === 'NO_TOKEN' || code === 'ROOM_CLEANED' || status === 404 || status === 401
+      if (fatal) {
+        this.room = null
+        this.playerId = ''
+        this.clearToken()
+        if (import.meta.client) {
+          try { navigateTo('/') } catch {}
+        }
+      }
+      return fatal
     },
     setNickname(name: string) {
       this.nickname = name
@@ -97,29 +112,48 @@ export const usePokerStore = defineStore('poker', {
         if (this.room?.viewerPlayerId) this.playerId = this.room.viewerPlayerId
       } catch (e: any) {
         this.error = e?.statusMessage || 'STATE_FAILED'
+        this._handleFatal(e)
         throw e
       }
     },
     async addBot() {
-      const res = await $fetch<any>('/api/room/add-bot', {
-        method: 'POST',
-        body: { token: this.token }
-      })
-      this.room = res.room
+      try {
+        const res = await $fetch<any>('/api/room/add-bot', {
+          method: 'POST',
+          body: { token: this.token }
+        })
+        this.room = res.room
+      } catch (e: any) {
+        this.error = e?.statusMessage || e?.data?.statusMessage || 'ADD_BOT_FAILED'
+        this._handleFatal(e)
+        throw e
+      }
     },
     async startGame() {
-      const res = await $fetch<any>('/api/room/start', {
-        method: 'POST',
-        body: { token: this.token }
-      })
-      this.room = res.room
+      try {
+        const res = await $fetch<any>('/api/room/start', {
+          method: 'POST',
+          body: { token: this.token }
+        })
+        this.room = res.room
+      } catch (e: any) {
+        this.error = e?.statusMessage || e?.data?.statusMessage || 'START_FAILED'
+        this._handleFatal(e)
+        throw e
+      }
     },
     async action(action: string, amount?: number) {
-      const res = await $fetch<any>('/api/game/action', {
-        method: 'POST',
-        body: { token: this.token, action, amount }
-      })
-      this.room = res.room
+      try {
+        const res = await $fetch<any>('/api/game/action', {
+          method: 'POST',
+          body: { token: this.token, action, amount }
+        })
+        this.room = res.room
+      } catch (e: any) {
+        this.error = e?.statusMessage || e?.data?.statusMessage || 'ACTION_FAILED'
+        this._handleFatal(e)
+        throw e
+      }
     },
     async leave() {
       try {

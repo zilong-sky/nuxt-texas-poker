@@ -1,5 +1,5 @@
-﻿import { defineEventHandler, readBody, createError } from 'h3'
-import { deleteRoom, loadRoom, loadSession, saveRoom } from '~~/server/utils/store'
+import { defineEventHandler, readBody, createError } from 'h3'
+import { deleteRoom, loadRoomOrCleanup, loadSession, saveRoom } from '~~/server/utils/store'
 
 /**
  * 玩家主动退出房间。
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   if (!token) throw createError({ statusCode: 401, statusMessage: 'NO_TOKEN' })
   const session = await loadSession(token)
   if (!session) throw createError({ statusCode: 401, statusMessage: 'INVALID_TOKEN' })
-  const room = await loadRoom(session.roomId)
+  const room = await loadRoomOrCleanup(session.roomId)
   if (!room) return { ok: true }
 
   room.players = room.players.filter(p => p.id !== session.playerId)

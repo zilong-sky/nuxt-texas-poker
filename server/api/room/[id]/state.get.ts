@@ -1,5 +1,5 @@
 import { defineEventHandler, getQuery, createError, getRouterParam } from 'h3'
-import { deleteRoom, loadRoom, loadSession, saveRoom } from '~~/server/utils/store'
+import { deleteRoom, loadRoomOrCleanup, loadSession, saveRoom } from '~~/server/utils/store'
 import { advanceIfTimedOut } from '~~/server/utils/game'
 import { sanitizeRoom } from '~~/server/utils/sanitize'
 
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const session = token ? await loadSession(token) : null
   const viewerId = session?.roomId === id ? session.playerId : undefined
 
-  const room = await loadRoom(id)
+  const room = await loadRoomOrCleanup(id)
   if (!room) throw createError({ statusCode: 404, statusMessage: 'ROOM_NOT_FOUND' })
 
   // 清理空房间

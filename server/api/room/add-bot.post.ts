@@ -1,5 +1,5 @@
-﻿import { defineEventHandler, readBody, createError } from 'h3'
-import { loadRoom, loadSession, saveRoom, unmarkRoomWaiting } from '~~/server/utils/store'
+import { defineEventHandler, readBody, createError } from 'h3'
+import { loadRoomOrCleanup, loadSession, saveRoom, unmarkRoomWaiting } from '~~/server/utils/store'
 import { newPlayer } from '~~/server/utils/game'
 import { MAX_PLAYERS } from '~~/server/utils/types'
 import { sanitizeRoom } from '~~/server/utils/sanitize'
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   if (!token) throw createError({ statusCode: 401, statusMessage: 'NO_TOKEN' })
   const session = await loadSession(token)
   if (!session) throw createError({ statusCode: 401, statusMessage: 'INVALID_TOKEN' })
-  const room = await loadRoom(session.roomId)
+  const room = await loadRoomOrCleanup(session.roomId)
   if (!room) throw createError({ statusCode: 404, statusMessage: 'ROOM_NOT_FOUND' })
   if (room.status !== 'waiting') {
     throw createError({ statusCode: 400, statusMessage: 'ROOM_STARTED' })

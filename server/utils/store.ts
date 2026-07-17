@@ -1,4 +1,4 @@
-﻿import type { H3Event } from 'h3'
+import type { H3Event } from 'h3'
 import { kv, ROOM_KEY, ROOMS_WAITING_KEY, SESSION_KEY, KV_TTL_SEC } from './kv'
 import type { Room, Session } from './types'
 
@@ -37,7 +37,8 @@ export async function listWaitingRooms(): Promise<Room[]> {
   const stale: string[] = []
   for (const id of ids) {
     const room = await loadRoom(id)
-    if (!room || room.status !== 'waiting') {
+    if (!room || room.status !== 'waiting' || isRoomDead(room)) {
+      if (room && isRoomDead(room)) await deleteRoom(room)
       stale.push(id)
       continue
     }
@@ -59,4 +60,29 @@ export async function saveSession(token: string, s: Session): Promise<void> {
 /** 从事件中读取 token（body / query） */
 export function readToken(event: H3Event, body?: any, tokenFromQuery?: string): string | undefined {
   return body?.token || body?.sessionToken || tokenFromQuery
+}
+
+/** 5 分钟无操作视为死房间 */
+export const IDLE_LIMIT_MS = 5 * 60 * 1000
+
+/** 判断房间是否应被回收：无真人 或 开局后 5 分钟无操作 */
+export function isRoomDead(room: Room): boolean {
+  const anyHuman = room.players.some(p => !p.isBot)
+  if (!anyHuman) return true
+  if (room.status === 'playing' && room.game) {
+    const last = room.game.lastActionAt || 0
+    if (last > 0 && Date.now() - last > IDLE_LIMIT_MS) return true
+  }
+  return false
+}
+
+/** 加载房间，若命中回收条件则删除并返回 null */
+export async function loadRoomOrCleanup(id: string): Promise<Room | null> {
+  const room = await loadRoom(id)
+  if (!room) return null
+  if (isRoomDead(room)) {
+    await deleteRoom(room)
+    return null
+  }
+  return room
 }

@@ -4,6 +4,13 @@
       <h1 class="h-title center">🎲 德州扑克</h1>
       <p class="center small">填写昵称后创建房间，或加入已有房间。</p>
 
+      <div v-if="hasSaved" class="resume-banner">
+        <span class="small">检测到未完成对局，是否恢复?</span>
+        <div class="resume-actions">
+          <button :disabled="resuming" @click="onResume">{{ resuming ? '恢复中…' : '恢复' }}</button>
+          <button class="ghost" :disabled="resuming" @click="onAbandon">放弃</button>
+        </div>
+      </div>
       <div class="nickname-row">
         <input v-model="nickname" placeholder="昵称（1-12 字符）" maxlength="12" @input="onNicknameInput" />
       </div>
@@ -106,14 +113,34 @@ let timer: ReturnType<typeof setInterval> | null = null
 onMounted(async () => {
   store.loadClientState()
   if (store.nickname) nickname.value = store.nickname
-  const roomId = await store.reconnect()
-  if (roomId) {
-    await navigateTo(`/room/${roomId}`)
-    return
-  }
+  // 不再自动跳转到旧房间：只提示，让用户点击后再恢复
+  hasSaved.value = !!store.token
   await refreshRooms()
   timer = setInterval(refreshRooms, 3000)
 })
+
+const hasSaved = ref(false)
+const resuming = ref(false)
+
+async function onResume() {
+  if (resuming.value) return
+  resuming.value = true
+  try {
+    const rid = await store.reconnect()
+    if (rid) {
+      await navigateTo(`/room/${rid}`)
+      return
+    }
+    hasSaved.value = false
+  } finally {
+    resuming.value = false
+  }
+}
+
+function onAbandon() {
+  store.clearToken()
+  hasSaved.value = false
+}
 
 onBeforeUnmount(() => {
   if (timer) clearInterval(timer)
@@ -131,4 +158,6 @@ onBeforeUnmount(() => {
 .room-list { display: flex; flex-direction: column; gap: 8px; }
 .room-card { display: flex; flex-direction: column; gap: 4px; text-align: left; width: 100%; }
 .room-host { font-weight: 700; }
+.resume-banner { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 10px; background: rgba(245,197,24,.08); border: 1px solid rgba(245,197,24,.35); }
+.resume-actions { display: flex; gap: 6px; }
 </style>

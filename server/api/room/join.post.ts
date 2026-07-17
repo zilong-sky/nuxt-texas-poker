@@ -1,6 +1,6 @@
-﻿import { randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { defineEventHandler, readBody, createError } from 'h3'
-import { loadRoom, saveRoom, saveSession, unmarkRoomWaiting } from '~~/server/utils/store'
+import { loadRoomOrCleanup, saveRoom, saveSession, unmarkRoomWaiting } from '~~/server/utils/store'
 import type { Room } from '~~/server/utils/types'
 import { MAX_PLAYERS } from '~~/server/utils/types'
 import { newPlayer } from '~~/server/utils/game'
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'ROOM_NOT_FOUND' })
   }
 
-  const room: Room | null = await loadRoom(roomId)
+  const room: Room | null = await loadRoomOrCleanup(roomId)
   if (!room) throw createError({ statusCode: 404, statusMessage: 'ROOM_NOT_FOUND' })
   if (room.status !== 'waiting') {
     throw createError({ statusCode: 400, statusMessage: 'ROOM_STARTED' })

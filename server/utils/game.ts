@@ -72,6 +72,7 @@ export function startNewHand(room: Room) {
     dealerIdx,
     actionIdx: 0,
     actionDeadline: 0,
+    lastActionAt: Date.now(),
     log: []
   }
   room.game = game
@@ -214,6 +215,7 @@ export function applyAction(
   }
   const p = room.players[game.actionIdx]
   const toCall = game.currentBet - p.bet
+  game.lastActionAt = Date.now()
 
   if (action === 'fold') {
     p.folded = true

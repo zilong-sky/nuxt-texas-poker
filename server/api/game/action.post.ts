@@ -1,5 +1,5 @@
 import { defineEventHandler, readBody, createError } from 'h3'
-import { loadRoom, loadSession, saveRoom } from '~~/server/utils/store'
+import { loadRoomOrCleanup, loadSession, saveRoom } from '~~/server/utils/store'
 import { advanceIfTimedOut, applyAction } from '~~/server/utils/game'
 import { sanitizeRoom } from '~~/server/utils/sanitize'
 
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   if (!token) throw createError({ statusCode: 401, statusMessage: 'NO_TOKEN' })
   const session = await loadSession(token)
   if (!session) throw createError({ statusCode: 401, statusMessage: 'INVALID_TOKEN' })
-  const room = await loadRoom(session.roomId)
+  const room = await loadRoomOrCleanup(session.roomId)
   if (!room) throw createError({ statusCode: 404, statusMessage: 'ROOM_NOT_FOUND' })
 
   // 每次动作前先推进超时/Bot
