@@ -91,7 +91,6 @@
                 <circle class='ring-fg' cx='22' cy='22' r='20' :stroke-dasharray='125.66' :stroke-dashoffset='125.66 * (1 - s.timerPct / 100)' />
               </svg>
               <div class='avatar'>{{ initial(s.player.name) }}</div>
-              <div class='gift-icon' title='礼物'>🎁</div>
               <div v-if='s.dealer' class='dealer-badge'>D</div>
               <div v-if='s.active' class='timer-num'>{{ s.remaining }}</div>
             </div>
@@ -368,6 +367,16 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   background: #0a0d14;
   font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
+@media (orientation: portrait) {
+  .game-page {
+    inset: auto;
+    top: 0; left: 100dvw;
+    width: 100dvh; height: 100dvw;
+    transform: rotate(90deg);
+    transform-origin: top left;
+  }
+}
+
 
 /* ---------- 左侧竖向功能栏 ---------- */
 .side-rail {
@@ -612,15 +621,6 @@ async function onBack() { await store.leave(); await navigateTo('/') }
   box-shadow: 0 3px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2);
 }
 .seat.me .avatar { border-color: #4dd0e1; }
-.gift-icon {
-  position: absolute; right: -6px; top: -4px;
-  width: 20px; height: 20px; border-radius: 6px;
-  background: linear-gradient(160deg, #a06bff, #5b2ecc);
-  border: 1px solid #d3b8ff;
-  color: #fff; font-size: 11px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,.5);
-}
 .dealer-badge {
   position: absolute; left: -8px; bottom: -4px;
   width: 20px; height: 20px; border-radius: 50%;
