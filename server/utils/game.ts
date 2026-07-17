@@ -316,8 +316,17 @@ export function advanceIfTimedOut(room: Room) {
 
     const now = Date.now()
     if (p.isBot) {
-      // Bot 立即决策
+      // Bot 延迟决策：首次遇到该 idx 时随机 1-6s
+      const g: any = game
+      if (g._botIdx !== idx) {
+        g._botIdx = idx
+        const delay = (Math.floor(Math.random() * 6) + 1) * 1000
+        g._botDeadline = now + delay
+      }
+      if (now < g._botDeadline) break
       const decision = botDecide(room, p)
+      g._botIdx = -1
+      g._botDeadline = 0
       applyAction(room, p.id, decision.action, decision.amount)
       continue
     }
